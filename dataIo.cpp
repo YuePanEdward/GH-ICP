@@ -97,7 +97,7 @@ void DataIo::readParalist(string paralistfile)
 	ifstream infile;   //ÊäÈëÁ÷
 	infile.open(paralistfile, ios::in);
 	if (!infile.is_open()) cout << "Open file failure" << endl;
-    
+	infile >> paralist.downsample_resolution;
 	infile >> paralist.num_point_bb;
 	infile >> paralist.feature_r;
 	infile >> paralist.keypoint_max_ratio;

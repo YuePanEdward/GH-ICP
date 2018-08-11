@@ -532,6 +532,88 @@ void  Registration::transformestimation(Eigen::Matrix4d &Rt)
 	KP.kpTXYZ = (TKP.block(0,0,TKP.cols(),3)).transpose();
 
 }*/
+void Registration::displayPC(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT)
+{
+	
+	Eigen::Matrix<double, 4, Dynamic> CloudT;
+    CloudT.resize(4, cloudT.cols());
+	CloudT = Rt_tillnow*cloudT;
+	
+	Eigen::Matrix<double, 4, Dynamic> KpT;
+	KpT.resize(4, kpT.cols());
+	KpT = Rt_tillnow*kpT;
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	viewer->setBackgroundColor(255, 255, 255);
+	char t[256];
+	string s;
+	int n = 0;
+
+	pcXYZRGBPtr pointcloudS(new pcXYZRGB());
+	pcXYZRGBPtr pointcloudT(new pcXYZRGB());
+
+	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = cloudS->points[i].x;
+		pt.y = cloudS->points[i].y;
+		pt.z = cloudS->points[i].z;
+		pt.r = 255;
+		pt.g = 215;
+		pt.b = 0;
+		pointcloudS->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudS, "pointcloudS");
+
+
+	for (size_t i = 0; i < cloudT.cols(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = CloudT(0, i) ;
+		pt.y = CloudT(1, i) ;
+		pt.z = CloudT(2, i);
+		pt.r = 233;
+		pt.g = 233;
+		pt.b = 216;
+		pointcloudT->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudT, "pointcloudT");
+
+	for (size_t i = 0; i < kpS.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = kpS(0, i);
+		pt.y = kpS(1, i);
+		pt.z = kpS(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.2, 0.0, 0.0, 1.0, s);
+		n++;
+	
+	}
+
+	for (size_t i = 0; i < KpT.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = KpT(0, i);
+		pt.y = KpT(1, i);
+		pt.z = KpT(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.2, 1.0, 0.0, 0.0, s);
+		n++;
+
+	}
+
+	cout << "Click X(close) to continue..."<<endl;
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
 
 void Registration::displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &TP)
 {

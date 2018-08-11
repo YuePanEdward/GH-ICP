@@ -34,7 +34,7 @@ using namespace Eigen;
 int main()
 {
 	//timing
-	DWORD t1, t2, t3, t4, t5, t6, t7, t8, t9;
+	DWORD t1, t2, t3, t4, t5, t6, t7, t8, t9, ts1 ,ts2 ,ts3 ,ts4;
 
 	cout << "!----------------------------------------------------------------!" << endl;
 	cout << "!           IGSP-Iterative Global Similarity Points              !" << endl;
@@ -66,7 +66,7 @@ int main()
 	
 	/*------ 2. voxelization------*/
 
-	float resolution = 0.05f;//control the subsampling scale (unit:m) ;//0.04f for TLS//0.00025f for bunny
+	float resolution = io.paralist.downsample_resolution;//control the subsampling scale (unit:m) ;//0.04f for TLS//0.00025f for bunny
 	VoxelFilter<pcl::PointXYZI> filter(resolution);
 	pcXYZIPtr filterPointCloudS(new pcXYZI()), filterPointCloudT(new pcXYZI());
 	filterPointCloudS = filter.filter(pointCloudS);
@@ -180,16 +180,19 @@ int main()
 	Reg.converge_r = io.paralist.converge_r;
 	//save TP ,TFP ,TKP and SKP
 	Reg.save(filterPointCloudT, pointCloudT,kpTXYZ,kpSXYZ);
-	
+	//display original pc
+	ts1 = GetTickCount();
+	Reg.displayPC(filterPointCloudS, Reg.tfP, Reg.skP, Reg.tkP);
+	ts2 = GetTickCount();
+
 	//Read ground truth RT
 	Reg.readGTRT();
-	//
 
 	//cal FD(constant)
 	Reg.calFD(bscS, bscT);
 
 	t6 = GetTickCount();
-	cout << "Time for registration preparation: " << (t6 - t5)*1.0 / 1000 << " s" << endl;
+	cout << "Time for registration preparation: " << (t6 - t5- ts2 + ts1)*1.0 / 1000 << " s" << endl;
 	
 	//output parameters
 	cout << "parameter list:  " << endl << "ED,FD weight parameter m = " << Ef.m << "  minimum correspondence pairs = " << Ef.min_cor <<endl
@@ -233,10 +236,15 @@ int main()
 	
 	cout << "converge_break" << endl;
 	cout <<"final Rt without classic ICP" << endl<< Reg.Rt_tillnow << endl;
-	cout << "IGSP Time: " << (t7 - t1)*1.0 / 1000 << " s" << endl 
+	cout << "IGSP Time: " << (t7 - t1- ts2 + ts1)*1.0 / 1000 << " s" << endl
 	<< "-----------------------------------------------------------------------------" << endl;
+	//display IGSP pc
+	ts3 = GetTickCount();
+	Reg.displayPC(filterPointCloudS, Reg.tfP, Reg.skP, Reg.tkP);
+	ts4 = GetTickCount();
 	//output IGSP temporal result
 	Reg.output(Reg.tfP);
+	
 
 	//---------------------------classic ICP refinement--------------------------------//
 
@@ -245,7 +253,7 @@ int main()
 	
 	//io.readPcdFileXYZ(filenameS, cloud_in);
 	pcl::copyPointCloud(*filterPointCloudS, *cloud_in); //Copy pointcloud (format transfer) input: XYZI output:XYZ
-	cout << "source ok" << endl;
+	//cout << "source ok" << endl;
 	Eigen::Matrix<double, 4, Dynamic> TransPC;
 	TransPC.resize(4, Reg.tfP.cols());
 	TransPC = Reg.Rt_tillnow*Reg.tfP;
@@ -257,14 +265,14 @@ int main()
 		cloud_out->points[i].y = TransPC(1, i);
 		cloud_out->points[i].z = TransPC(2, i);
 	}
-	cout << "target ok" << endl;
+	//cout << "target ok" << endl;
 	t8 = GetTickCount();
 	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 	icp.setInputSource(cloud_out);
 	icp.setInputTarget(cloud_in);
-	icp.setMaxCorrespondenceDistance(5*kpOption.radiusNonMax); 
-	icp.setTransformationEpsilon(1e-5);
-	icp.setEuclideanFitnessEpsilon(0.01);
+	icp.setMaxCorrespondenceDistance(10*kpOption.radiusNonMax); 
+	icp.setTransformationEpsilon(1e-4);
+	icp.setEuclideanFitnessEpsilon(0.05);
 	icp.setMaximumIterations(15);
 	icp.setUseReciprocalCorrespondences(true);
 	pcl::PointCloud<pcl::PointXYZ> Final;
@@ -278,24 +286,29 @@ int main()
 	cout << "final Rt " << endl << Reg.Rt_tillnow << endl;
 	io.writePcdFileXYZ("FinalRegistered.pcd", Final.makeShared());
 	
-	cout << "Classic ICP Time: " << (t9 - t8)*1.0 / 1000 << " s" << endl;
-	cout << "Total Time: " << (t9 - t8 + t7 - t1)*1.0 / 1000 << " s" << endl
+	cout << "Classic ICP Time: " << (t9 - t8-ts4 + ts3)*1.0 / 1000 << " s" << endl;
+	cout << "Total Time: " << (t9 - t8 + t7 - t1- ts2 + ts1 -ts4 +ts3)*1.0 / 1000 << " s" << endl
 		<< "-----------------------------------------------------------------------------" << endl;
 	//----------------------------------------------------------------------------------------//
+	//display final pc
+	Reg.displayPC(filterPointCloudS, Reg.tfP, Reg.skP, Reg.tkP);
 	
+	//output 
 	Reg.output(Reg.tP);
 	Reg.index_output = 1;
 	//Reg.output(Reg.tkP);
 	//
 	Reg.calGTmatch(Reg.skP, Reg.tkP);
 	Reg.cal_recall_precision();
-	//
 
-	cout << "Output for experiment done" << endl;
-
+	cout << "Output for experiment done" << endl 
+		<< "-----------------------------------------------------------------------------" << endl
+		<< "Thanks for using this software." << endl << "By Yue Pan et al. @ Wuhan University & University of Alberta" << endl;
 	//end
 	int endok;
 	cin >> endok;
 	return 1;
+
+	
 }
 

@@ -12,6 +12,8 @@ using namespace std;
 
 struct Paralist{
 
+	float downsample_resolution;
+
 	float num_point_bb;
 
 	float feature_r;

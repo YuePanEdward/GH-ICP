@@ -60,6 +60,7 @@ namespace Reg
 		void transformestimation(Eigen::Matrix4d &Rt);
 		void update(Eigen::Matrix4Xd &TKP, Eigen::Matrix4Xd &TFP, Eigen::Matrix4d &Rt);
 		void displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &TP);
+		void displayPC(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT);
 		//pcl::PointCloud<pcl::PointXYZI> ::Ptr output(const pcXYZIPtr &cloud, Eigen::Matrix4d &Rt);
 		void output(Eigen::Matrix4Xd &TP);
 		void save(const pcXYZIPtr &cloudfT, const pcXYZIPtr &cloudT, Eigen::MatrixX3d &kpTXYZ_0, Eigen::MatrixX3d &kpSXYZ_0);
