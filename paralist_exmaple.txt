@@ -1,0 +1,28 @@
+0.08
+800000
+0.6
+0.4
+30
+30
+2.5
+1.5
+1.5
+6
+0.5
+0.2
+0
+
+//Notification
+1  resolution of voxel downsampling
+2  num_point_bb
+3  feature_r
+4  keypoint_max_ratio
+5  keypoint_min_num
+6  scale
+7  p_pre
+8  p_ED
+9  p_FD
+10  m
+11 converge_t
+12 converge_r
+13 output or not output
