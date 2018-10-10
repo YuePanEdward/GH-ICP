@@ -1,7 +1,7 @@
 # Iterative Global Similarity Points (IGSP) 
-A robust coarse-to-fine pairwise point cloud registration method 
+IGSP is a robust coarse-to-fine pairwise point cloud registration method. 
 
-Two key innovative points beyond ICP is: 
+Two key innovative points beyond ICP are: 
 
 1. Global optimal matching (Using Bipartite Graph and KM algorithm)
 
