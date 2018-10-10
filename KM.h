@@ -26,6 +26,7 @@ namespace KMSpace{
 		vector<int> min_match;
 		int min_n;
 
+		
 
 	};
 	
@@ -47,6 +48,9 @@ namespace KMSpace{
 		double energy();
 		double penalty;
 		bool findpath(int x);
+
+		double precision;
+		double recall;
 
 	protected:
 		

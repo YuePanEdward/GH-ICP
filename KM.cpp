@@ -127,6 +127,7 @@ int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int>
 	ofstream ofs;
 	ofs.open("Corres.txt");
 	int cor_number=0;
+	int cor_exact_num = 0;
 	if (ofs.is_open())
 	{
 		//F2 modified method
@@ -134,6 +135,8 @@ int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int>
 		int size = gra.n;
 		for (int i = 0; i < size;i++)
 		{
+			if (gra.match[i] == i) cor_exact_num++;
+			
 			if (gra.GTable[gra.match[i]][i] != -penalty) {
 				
 				ofs << gra.match[i] << " - " << i << endl;
@@ -191,8 +194,13 @@ int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int>
 		ofs.close();
 	}*/
 	//cout << "Correspondence output" << endl;
+	precision = 1.0*cor_exact_num / cor_number;
+	recall = 1.0*cor_exact_num / gra.n;
+
 	SP.resize(cor_number);
 	TP.resize(cor_number);
+	
+
 	return cor_number;
 }
 //test for KM

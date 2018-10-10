@@ -25,11 +25,13 @@ struct Paralist{
 	float p_ED;
 	float p_FD;
 	float m;
+	float kmeps; //kmËã·¨µÄãÐÖµ eps
 
 	float converge_t;
 	float converge_r;
 
 	bool output;
+	bool feature;
 };
 
 
@@ -43,7 +45,8 @@ public:
 	bool writePcdFileXYZ(const string &fileName, const pcXYZPtr &pointCloud);
 	void outputwhat();
 	void readParalist(string paralistfile);
-	
+	void display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT);
+	void displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, const pcXYZPtr &cloudIGSP);
 	Paralist paralist;
 protected:
 

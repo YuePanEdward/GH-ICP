@@ -1,6 +1,8 @@
 #include "dataIo.h"
 #include "utility.h"
 
+#include <pcl/visualization/common/common.h>
+#include <pcl/visualization/pcl_visualizer.h>
 #include <string>
 #include <fstream>
 #include <vector>
@@ -107,7 +109,116 @@ void DataIo::readParalist(string paralistfile)
 	infile >> paralist.p_ED;
 	infile >> paralist.p_FD;
 	infile >> paralist.m;
+	infile >> paralist.kmeps;
 	infile >> paralist.converge_t;
 	infile >> paralist.converge_r;
-	infile >> paralist.output;
+	infile >> paralist.output;  
+	infile >> paralist.feature; //是否使用FD，使用为1，只用ED为0
+}
+
+void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
+{
+
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	viewer->setBackgroundColor(255, 255, 255);
+	char t[256];
+	string s;
+	int n = 0;
+
+	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = cloudS->points[i].x;
+		pt.y = cloudS->points[i].y;
+		pt.z = cloudS->points[i].z;
+		sprintf(t, "%d", n);
+		s = t;
+		//viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+
+	for (size_t i = 0; i < cloudT->points.size(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = cloudT->points[i].x;
+		pt.y = cloudT->points[i].y;
+		pt.z = cloudT->points[i].z;
+		sprintf(t, "%d", n);
+		s = t;
+		//viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
+		viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+	cout << "Click X(close) to continue..." << endl;
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
+void DataIo::displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, const pcXYZPtr &cloudIGSP)
+{
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	viewer->setBackgroundColor(255, 255, 255);
+	char t[256];
+	string s;
+	int n = 0;
+
+	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = cloudS->points[i].x;
+		pt.y = cloudS->points[i].y;
+		pt.z = cloudS->points[i].z;
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+
+	for (size_t i = 0; i < cloudICP->points.size(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = cloudICP->points[i].x;
+		pt.y = cloudICP->points[i].y;
+		pt.z = cloudICP->points[i].z;
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+
+	for (size_t i = 0; i < cloudIGSP->points.size(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = cloudIGSP->points[i].x;
+		pt.y = cloudIGSP->points[i].y;
+		pt.z = cloudIGSP->points[i].z;
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 1.0, 0.0, 0.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+	cout << "Click X(close) to continue..." << endl;
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
 }
