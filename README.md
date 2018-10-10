@@ -14,15 +14,17 @@ Now available on Windows
 
 ### How to use
 1.Input Target cloud
+
 2.Input Source cloud
+
 3.Input parameter list
 
 ### Parameter list
 Take the ALS registration parameter setting as an example
 
-0.5
-100000
-3.0
+>>0.5
+>>100000
+>>3.0
 0.6
 50
 1
