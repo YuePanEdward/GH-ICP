@@ -22,21 +22,21 @@ Now available on Windows
 ### Parameter list
 Take the ALS registration parameter setting as an example
 
->>0.5
->>100000
->>3.0
-0.6
-50
-1
-2.0
-1.5
-1.5
-6
-0.05
-0.01
-0.01
-1
-1
+> 0.5
+> 100000
+> 3.0
+> 0.6
+> 50
+> 1
+> 2.0
+> 1.5
+> 1.5
+> 6
+> 0.05
+> 0.01
+> 0.01
+> 1
+> 1
 
 Notification
 1  resolution of voxel downsampling (unit:m)
