@@ -23,9 +23,13 @@ Now available on Windows
 Take the ALS registration parameter setting as an example
 
 > 0.5
+
 > 100000
+
 > 3.0
+
 > 0.6
+
 > 50
 > 1
 > 2.0
