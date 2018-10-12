@@ -12,6 +12,16 @@ Two key innovative points beyond ICP are:
 ### [Paper](https://arxiv.org/abs/1808.03899) 
 Iterative Global Similarity Points: A robust coarse-to-fine integration solution for pairwise 3D point cloud registration, Yue Pan, Bisheng Yang, Fuxun Liang, Zhen Dong, Accepted by 3DV-2018 
 
+### Citation
+If you find our work useful in your research, please consider citing:
+
+        @proceeding{yue2018igsp,
+          title={Iterative Global Similarity Points: A robust coarse-to-fine integration solution for pairwise 3D point cloud registration},
+          author={Yue, Pan and Bisheng, Yang and Fuxun, Liang and Zhen, Dong},
+          journal={International Conference on 3D Vision(3DV2018)},
+          year={2018}
+        }
+
 ### [Poster](https://github.com/YuePanEdward/YuePanEdward.github.io/blob/master/assets/3DVposter.pdf)
 
 
