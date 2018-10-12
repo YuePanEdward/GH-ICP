@@ -14,11 +14,11 @@ Iterative Global Similarity Points: A robust coarse-to-fine integration solution
 
 ### Citation
 If you find our work useful in your research, please consider citing:
-
-        @proceeding{yue2018igsp,
-          title={Iterative Global Similarity Points: A robust coarse-to-fine integration solution for pairwise 3D point cloud registration},
+        
+        @INPROCEEDINGS{yue2018igsp,    
           author={Yue, Pan and Bisheng, Yang and Fuxun, Liang and Zhen, Dong},
-          journal={International Conference on 3D Vision(3DV2018)},
+          booktitle = {2018 International Conference on 3D Vision (3DV)},
+          title={Iterative Global Similarity Points: A robust coarse-to-fine integration solution for pairwise 3D point cloud registration},
           year={2018}
         }
 
