@@ -1,7 +1,7 @@
 # GH-ICP：Iterative Closest Point algorithm with global optimal matching and hybrid metric 
 GH-ICP is a robust coarse-to-fine pairwise point cloud registration method. 
 
-Two key innovative points beyond ICP are: 
+Two key innovative points over ICP are: 
 
 1. Global optimal matching (Using Bipartite Graph and KM algorithm)
 
