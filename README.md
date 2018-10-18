@@ -1,11 +1,17 @@
-# Iterative Global Similarity Points (IGSP) 
-IGSP is a robust coarse-to-fine pairwise point cloud registration method. 
+# GH-ICP：Iterative Closest Point algorithm with global optimal matching and hybrid metric 
+GH-ICP is a robust coarse-to-fine pairwise point cloud registration method. 
 
 Two key innovative points beyond ICP are: 
 
 1. Global optimal matching (Using Bipartite Graph and KM algorithm)
 
 2. Hybrid metrics (Using Euclidean distance and feature distance at the same time)
+
+The earlier conference version of GH-ICP is called Iterative Global Similarity Point (IGSP).
+
+After the conference, we have improved the original algorithm on its efficiency and robustness. Besides, we've done more experiments on more datasets. 
+
+To highlight two key innovative points of the algorithm, we renamed IGSP as GH-ICP.
 
 ### [Video](https://www.youtube.com/watch?v=DZr-8AceSqA)
 
