@@ -41,6 +41,8 @@ Now available on Windows
 
 3.Input parameter list
 
+4.Estimate the approximate overlapping rate (IoU) of the point cloud pair
+
 ### Parameter list
 Take the ALS registration parameter setting as an example
 
@@ -80,7 +82,7 @@ Notification
 
 > 2  num_point_bb (the maximum number of keypoints remaining in the bounding box of the target point cloud)
 
-> 3  feature_r (BSC[1] feature calulation radius, unit:m) 
+> 3  feature_r (feature calulation radius, unit:m) 
 
 > 4  keypoint_max_ratio (the max curvature for keypoint detection, the larger this value is, the more keypoints would be)
 
@@ -104,9 +106,13 @@ Notification
 
 > 14 output or not output (If this value is 1, then the point cloud of every single iteration would be output. Or there would be no output except for the last one)
 
-> 15 use feature or not (If this value is 1, BSC feature would be extracted and used for the feature distance calculation. Or this algorithm would not consider the hybrid metrics and directly use Euclidean metrics instead.)
+> 15 feature option (If this value is 1, BSC[1] feature would be extracted and used for the feature distance calculation. If this value is 2, FPFH feature would be extracted and used for the feature distance calculation. If this value is 0, this algorithm would not consider the hybrid metrics and directly use Euclidean metrics instead.)
 
 
 [1]BSC feature: Please refer to our previous article：Dong, Z., Yang, B., Liu, Y., Liang, F., Li, B., & Zang, Y., 2017. A novel binary shape context for 3d local surface description. Isprs Journal of Photogrammetry & Remote Sensing, 130, 431-452.
 
-(You can also use FPFH, SHOT... as the feature)
+### Tips
+
+1. You can choose from GH-ICP,G-ICP,H-ICP,Classic-ICP.
+ 
+   According to the experiments, GH-ICP has the best accuracy, robustness and applicability. However its limited efficiency o(n^3) make it not suitable for engineering application. Then you can choose to use H-ICP, which is faster o(n^2) but less robust.
