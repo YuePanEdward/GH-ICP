@@ -134,8 +134,8 @@ void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
 		pt.z = cloudS->points[i].z;
 		sprintf(t, "%d", n);
 		s = t;
-		//viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
-		viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
 		n++;
 
 	}
@@ -149,8 +149,8 @@ void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
 		pt.z = cloudT->points[i].z;
 		sprintf(t, "%d", n);
 		s = t;
-		//viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
-		viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
+		viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
 		n++;
 
 	}
@@ -222,3 +222,73 @@ void DataIo::displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, co
 		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
 	}
 }
+
+void  DataIo::displayparameter(){
+	cout << "!--------------------------Parameter Specification---------------------------!" << endl;
+	if (paralist.feature == 0) cout << "G-ICP: Do not use feature to do the registration."<<endl;
+	if (paralist.feature == 1) cout << "GH-ICP: Use BSC feature to do the registration." << endl;
+	if (paralist.feature == 2) cout << "GH-ICP: Use FPFH feature to do the registration." << endl;
+	if (paralist.output == 0) cout << "Do not output each iteration's result." << endl;
+	if (paralist.output == 1) cout << "Output each iteration's result." << endl;
+	cout << "Voxel Filtering Resolution:\t" << paralist.downsample_resolution << endl;
+	cout << "Feature Calculation radius (m):\t" << paralist.feature_r << endl;
+	cout << "Max Number of the KeyPoints in Point Cloud's Bounding Box:\t" << paralist.num_point_bb << endl;
+	cout << "Keypoint Detection Max Curvature:\t" << paralist.keypoint_max_ratio << endl;
+	cout << "Keypoint Detection Min Basing Points:\t" << paralist.keypoint_min_num << endl;
+	cout << "Euclidean Scale:\t" << paralist.scale << endl;
+	cout << "Penalty Parameter 1 (Initial):\t" << paralist.p_pre<< endl;
+	cout << "Penalty Parameter 2 (Euclidean Distance):\t" << paralist.p_ED << endl;
+	cout << "Penalty Parameter 3 (Feature Distance):\t" << paralist.p_FD << endl;
+	cout << "Weight Changing Rate:\t" << paralist.m << endl;
+	cout << "Terminal Threshold for K-M Algorithm:\t" << paralist.kmeps << endl;
+	cout << "Convergence Condition for Translation (m)\t" << paralist.converge_t << endl;
+	cout << "Convergence Condition for Rotation (deg)\t" << paralist.converge_r << endl;
+	cout << "!----------------------------------------------------------------------------!" << endl;
+
+
+
+}
+/*点云分组*/
+/* 奇一组，偶一组
+string filename;
+cout << "input file" << endl;
+cin >> filename;
+pcXYZPtr pointCloud0(new pcXYZ()), pointCloud1(new pcXYZ()), pointCloud2(new pcXYZ());
+DataIo io;
+io.readPcdFileXYZ(filename, pointCloud0);
+cout << "Data loaded" << endl;
+cout << "Point number:" << pointCloud0->size() << endl;
+//io.writePcdFileXYZ("cloud0.pcd", pointCloud0);
+//cout << "Output complete 0" << endl;
+
+pointCloud1->width = pointCloud0->size() / 2;
+pointCloud1->height = 1;
+//pointCloud1->is_dense = false;
+
+pointCloud1->points.resize(pointCloud1->width * pointCloud1->height);
+
+pointCloud2->width = pointCloud0->size() / 2;
+pointCloud2->height = 1;
+//pointCloud2->is_dense = false;
+pointCloud2->points.resize(pointCloud2->width * pointCloud2->height);
+
+for (size_t i = 0; i < pointCloud0->size(); i++){
+
+
+	if (i % 2 == 0){
+		pointCloud1->points[(i + 2) / 2 - 1] = pointCloud0->points[i];
+
+		//cout << pointCloud1->points[(i + 2) / 2 - 1].x << pointCloud1->points[(i + 2) / 2 - 1].y<<pointCloud1->points[(i + 2) / 2 - 1].z<<endl;
+	}
+
+	else{
+		pointCloud2->points[(i + 1) / 2 - 1] = pointCloud0->points[i];
+
+		//cout << pointCloud2->points[(i + 1) / 2 - 1 ].x << pointCloud2->points[(i + 1) / 2 - 1 ].y << pointCloud2->points[(i + 1) / 2 - 1 ].z << endl;
+	}
+
+}
+io.writePcdFileXYZ("cloud1.pcd", pointCloud1);
+io.writePcdFileXYZ("cloud2.pcd", pointCloud2);
+cout << "Output complete" << endl;
+*/

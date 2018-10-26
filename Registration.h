@@ -28,16 +28,14 @@ namespace Reg
 		double para2_penalty;
 		double penalty_initial;
 		double KM_eps;
-		int k;
-		bool usefeature;
+		float k;
+		int usefeature;
 	};
 
 	struct Keypoints
 	{
 		int kps_num;
 		int kpt_num;
-		//vector<vector<double>> kpSXYZ;
-		//vector<vector<double>> kpTXYZ;
 		Eigen::Matrix<double, Dynamic, 3> kpSXYZ;
 		Eigen::Matrix<double, Dynamic, 3> kpTXYZ;
 	};
@@ -55,21 +53,32 @@ namespace Reg
 		}
 		
 		void calED();
-		void calFD(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT);
-		void calCD();
-		void findcorrespondence();
+
+		void calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT);
+		void calFD_FPFH(const fpfhFeaturePtr &fpfhS, const fpfhFeaturePtr &fpfhT);
+
+		void calCD_NF();
+		void calCD_BSC();
+		void calCD_FPFH();
+
+		void findcorrespondenceKM();
+		void findcorrespondenceNNR();
+		void findcorrespondenceNN();
+
 		void transformestimation(Eigen::Matrix4d &Rt);
 		void update(Eigen::Matrix4Xd &TKP, Eigen::Matrix4Xd &TFP, Eigen::Matrix4d &Rt);
+		void adjustweight(double estimated_overlap);
+		
 		void displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &TP);
 
 		// Display in different color [ you need to use template here, it's stupid to do like that ]
-		void displayPCrb(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT);
-		void displayPCyb(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT);
-		void displayPCvb(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT);
+		void displayPCrb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS);
+		void displayPCyb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS);
+		void displayPCvb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS);
 
 		//pcl::PointCloud<pcl::PointXYZI> ::Ptr output(const pcXYZIPtr &cloud, Eigen::Matrix4d &Rt);
 		void output(Eigen::Matrix4Xd &TP);
-		void save(const pcXYZIPtr &cloudfT, const pcXYZIPtr &cloudT, Eigen::MatrixX3d &kpTXYZ_0, Eigen::MatrixX3d &kpSXYZ_0);
+		void save(const pcXYZIPtr &cloudfS, const pcXYZIPtr &cloudS, Eigen::MatrixX3d &kpSXYZ_0, Eigen::MatrixX3d &kpTXYZ_0);
 		void energyRMSoutput();
 		void calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
 		void cal_recall_precision();
@@ -77,15 +86,16 @@ namespace Reg
 
 		double calCloudFeatureDistance(int cor_num);
 		
-		double PCFD;  //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
+		double PCFD;          //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
 
 		int iteration_number; //real iteration number from 1
 		int iteration_k;      //iteration number determined for weight
 		double RMS;
 		double FDM;           //correspondence feature distance mean value
-		double FDstd;         //correspondence feature distance standard diviation
-		
-		
+		double FDstd;         //correspondence feature distance standard deviation
+		double IoU;           //Intersection over Union ratio of registration (Similarly to overlapping rate)
+		double nonmax;        //The radius of keypoint neighborhood curvature non-maximum suppression in meter
+
 
 		//double CDmax;
 		bool converge;
@@ -103,8 +113,8 @@ namespace Reg
 		vector<int> gtmatchlist;  // ground truth match result for Source Point Cloud
 
 		//save Target point cloud coordinates
-		Eigen::Matrix4Xd tfP;
-		Eigen::Matrix4Xd tP;
+		Eigen::Matrix4Xd sfP;
+		Eigen::Matrix4Xd sP;
 		Eigen::Matrix4Xd tkP;
 		Eigen::Matrix4Xd skP;
 

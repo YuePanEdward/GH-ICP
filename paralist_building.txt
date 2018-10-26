@@ -1,0 +1,32 @@
+0.1
+200000
+0.8
+0.65
+30
+1
+2.5
+1
+1
+6
+0.05
+0.1
+0.1
+0
+1
+
+//Notification
+1  filter resolution
+2  num_point_bb
+3  feature_r
+4  keypoint_max_ratio
+5  keypoint_min_num
+6  scale
+7  p_pre
+8  p_ED
+9  p_FD
+10  m
+11 km eps
+12 converge_t
+13 converge_r
+14 output or not output
+15 feature selection (0: no feature 1: BSC 2:FPFH)

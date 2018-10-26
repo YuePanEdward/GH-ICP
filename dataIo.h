@@ -31,7 +31,7 @@ struct Paralist{
 	float converge_r;
 
 	bool output;
-	bool feature;
+	int feature;
 };
 
 
@@ -47,6 +47,7 @@ public:
 	void readParalist(string paralistfile);
 	void display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT);
 	void displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, const pcXYZPtr &cloudIGSP);
+	void displayparameter();
 	Paralist paralist;
 protected:
 

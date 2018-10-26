@@ -4,6 +4,10 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/PolygonMesh.h>
+#include <pcl/kdtree/kdtree_flann.h>
+
+
+// All kinds of typedef
 
 typedef  pcl::PointCloud<pcl::PointXYZI>::Ptr      pcXYZIPtr;
 typedef  pcl::PointCloud<pcl::PointXYZI>            pcXYZI;
@@ -23,8 +27,11 @@ typedef  pcl::PointCloud<pcl::PointXYZRGBA>            pcXYZRGBA;
 typedef pcl::PointCloud<pcl::Normal>::Ptr NormalsPtr;
 typedef pcl::PointCloud<pcl::Normal> Normals;
 
+typedef pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhFeaturePtr;
+typedef pcl::PointCloud<pcl::FPFHSignature33> fpfhFeature;
 
 typedef std::vector<pcXYZI>  vectorPCXYZI;
+
 
 namespace utility
 {

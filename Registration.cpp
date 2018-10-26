@@ -16,6 +16,7 @@
 #include "dataIo.h"
 #include "keypointDetection.h"
 #include "StereoBinaryFeature.h"
+#include "fpfh.h"
 
 #include <pcl\filters\extract_indices.h>
 #include <pcl/visualization/common/common.h>
@@ -42,13 +43,13 @@ using namespace boost::filesystem;
 
 void Registration::calED()
 {
-	double minED = 10000.0, maxED =0.0;
+	//double minED = 10000.0, maxED =0.0;
 	for (size_t i = 0; i <KP.kps_num; ++i)
 	{
 		for (size_t j = 0; j < KP.kpt_num; ++j)
 		{
 			//for TLS
-			EF.ED[i][j] = 1.0*sqrt(pow(KP.kpSXYZ(i,0) - KP.kpTXYZ(j,0), 2) + pow(KP.kpSXYZ(i,1) - KP.kpTXYZ(j,1), 2) + pow(KP.kpSXYZ(i,2) - KP.kpTXYZ(j,2), 2))*EF.k;
+			EF.ED[i][j] = EF.k*sqrt(pow(KP.kpSXYZ(i,0) - KP.kpTXYZ(j,0), 2) + pow(KP.kpSXYZ(i,1) - KP.kpTXYZ(j,1), 2) + pow(KP.kpSXYZ(i,2) - KP.kpTXYZ(j,2), 2));
 			//for bunny
 			//EF.ED[i][j] = 200.0*sqrt(pow(KP.kpSXYZ(i, 0) - KP.kpTXYZ(j, 0), 2) + pow(KP.kpSXYZ(i, 1) - KP.kpTXYZ(j, 1), 2) + pow(KP.kpSXYZ(i, 2) - KP.kpTXYZ(j, 2), 2));
 			//minED = min(minED, EF.ED[i][j]);
@@ -66,7 +67,7 @@ void Registration::calED()
 		}
 	}//ED OK*/
 }
-void  Registration::calFD(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT)
+void  Registration::calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT)
 {
 	/*
 	ofstream ofs;
@@ -89,19 +90,23 @@ void  Registration::calFD(const doubleVectorSBF &bscS, const doubleVectorSBF &bs
 	ofs.close();
 	}*/
 
+	
 	SBF sbf0;
-	int minFD = 1000, maxFD = 0;
-	for (size_t i = 0; i < EF.FD.size(); ++i)
+	//int minFD = 1000, maxFD = 0;
+	for (size_t i = 0; i < KP.kps_num; ++i)
 	{
-		for (size_t j = 0; j <EF.FD[0].size(); ++j)
+		for (size_t j = 0; j<KP.kpt_num; ++j)
 		{
 			EF.FD[i][j] = min(min(sbf0.hammingDistance(bscS[0][i], bscT[0][j]), sbf0.hammingDistance(bscS[0][i], bscT[1][j])),
 				min(sbf0.hammingDistance(bscS[1][i], bscT[0][j]), sbf0.hammingDistance(bscS[1][i], bscT[1][j])));
 
-			if (EF.FD[i][j] < minFD) minFD = EF.FD[i][j];
-			if (EF.FD[i][j] > maxFD) maxFD = EF.FD[i][j];
+			//if (EF.FD[i][j] < minFD) minFD = EF.FD[i][j];
+			//if (EF.FD[i][j] > maxFD) maxFD = EF.FD[i][j];
 		}
 	}
+	cout << "FD calculation completed." << endl;
+	
+	//----------------------------------------
 
 	//normalization FD
 	/*for (size_t i = 0; i < keyPointIndicesS->indices.size(); ++i){
@@ -112,45 +117,71 @@ void  Registration::calFD(const doubleVectorSBF &bscS, const doubleVectorSBF &bs
 	//FD OK*/
 }
 
-
-
-void  Registration::calCD()
+void  Registration::calFD_FPFH(const fpfhFeaturePtr &fpfhS, const fpfhFeaturePtr &fpfhT)
 {
-	/*double WED,WFD;
-	if (iteration_number == 0) WED = 0;
-	else  WED = 1;
-	WFD = 1 - WED;*/
-	
+	FPFHfeature fpfhcal;
+	for (size_t i = 0; i < KP.kps_num; ++i)
+	{
+		for (size_t j = 0; j <KP.kpt_num; ++j)
+		{
+			EF.FD[i][j] = fpfhcal.compute_fpfh_distance(fpfhS->points[i].histogram, fpfhT->points[j].histogram);  //(0-1)
+		}
+	}
+	cout << "FD calculation completed." << endl;
+}
+
+void  Registration::calCD_NF(){
+	double CDsum = 0;
+	double CDmean;
+	for (size_t i = 0; i < KP.kps_num; i++){
+		for (size_t j = 0; j < KP.kpt_num; j++){
+			EF.CD[i][j] = EF.ED[i][j];
+			CDsum += EF.CD[i][j];
+		}
+	}//CD OK
+	CDmean = CDsum / KP.kpt_num / KP.kps_num;
+	// Assign the value of penalty
+	if (iteration_number > 1){
+		EF.penalty = RMS*EF.para1_penalty*EF.k;
+	}
+	else{
+		EF.penalty = CDmean/EF.penalty_initial;
+	}	
+	cout << "CDmean: " << CDmean << "  penalty:" << EF.penalty << endl;
+}
+
+void  Registration::calCD_BSC()
+{
 	double WFD = exp(-1.0*iteration_number / EF.m);
 	//double WFD = 0.0;
 	double WED = 1.0 - WFD;
-	double CDsum = 0.0;
+	double CDsum = 0;
 	double CDmean, CDstd;
 	double CDstdsum = 0;
 	//CDmax = 0;
-	for (size_t i = 0; i < KP.kps_num; ++i){
-		for (size_t j = 0; j < KP.kpt_num; ++j){
-			EF.CD[i][j] = WED*EF.ED[i][j] + WFD*EF.FD[i][j];
-			CDsum += EF.CD[i][j];
-			//CDmax = max(CDmax, EF.CD[i][j]);
+	for (size_t i = 0; i < KP.kps_num; i++){
+		for (size_t j = 0; j <KP.kpt_num; j++){
+
+				EF.CD[i][j] = WED*EF.ED[i][j] + WFD*EF.FD[i][j];
+				CDsum+=EF.CD[i][j];			
 		}
 	}//CD OK
-	CDmean = CDsum / KP.kps_num / KP.kpt_num;
+	//cout << KP.kps_num << "pts, " << KP.kpt_num << "pts" << endl;
+	CDmean = CDsum / KP.kpt_num / KP.kps_num;
 	for (size_t i = 0; i < KP.kps_num; ++i){
 		for (size_t j = 0; j < KP.kpt_num; ++j){
 			CDstdsum += pow(EF.CD[i][j] - CDmean, 2);
 		}
 	}
-	CDstd = sqrt(CDstdsum / KP.kps_num / KP.kpt_num);
+	CDstd = sqrt(CDstdsum / KP.kpt_num / KP.kps_num);
 	//EF.penalty = (CDmean - 2*CDstd)/2;//penalty OK
 	//EF.penalty = CDmean / 3;
 	//if (EF.para1_penalty>=EF.penalty_threshod) EF.para1_penalty -= EF.para2_penalty;//1.25
 	
-
-	
+	// Assign the value of penalty
 
 	if (iteration_number > 1){
-		EF.penalty = RMS*EF.para1_penalty*EF.k*WED + (FDM+EF.para2_penalty*FDstd)*WFD;
+			EF.penalty = RMS*EF.para1_penalty*EF.k*WED + (FDM + EF.para2_penalty*FDstd)*WFD;
 	}
 	else{
 		EF.penalty = (CDmean - EF.penalty_initial * CDstd);
@@ -163,10 +194,51 @@ void  Registration::calCD()
 	cout << "CDmean: " << CDmean <<" CDstd: "<< CDstd<<"  penalty:"<<EF.penalty << endl;
 }
 
-void  Registration::findcorrespondence()
+void  Registration::calCD_FPFH()  // In this case, FD is the metric of similarity so that it ranges from 0 to 1
 {
 	
+	double CDsum = 0;
+	double CDmean = 0;
+	double CDstd = 0;
+	double CDstdsum = 0;
 
+	for (size_t i = 0; i < KP.kps_num; i++){
+		for (size_t j = 0; j < KP.kpt_num; j++){
+	        //Important calculation here
+			EF.CD[i][j] =1.0* EF.ED[i][j] / pow(EF.FD[i][j],1.0/(iteration_number+1));  //CD=ED/(FS^(1/k)) (here FS is the similarity and k is the iteration number count from 1)
+			
+			CDsum += EF.CD[i][j];
+			//cout << CDsum<< endl;
+		}
+	}
+
+
+	CDmean = CDsum / KP.kps_num / KP.kpt_num;
+	/*for (size_t i = 0; i < KP.kps_num; ++i){
+		for (size_t j = 0; j < KP.kpt_num; ++j){
+			//CDstdsum += pow(EF.CD[i][j] - CDmean, 2);
+		}
+	}*/
+	//CDstd = sqrt(CDstdsum / KP.kps_num / KP.kpt_num);
+
+	// Assign the value of penalty
+	
+	if (iteration_number > 1){
+		                                                            //Use feature: GH-ICP
+		EF.penalty = RMS*EF.para1_penalty*EF.k*EF.para2_penalty;    //penalty= RMS*scale*ped/(1/pfd)=RMS*scale*ped*pfd     Notice that 1/pfd must be 0-1 so that pfd must be greater than 1.
+
+	}
+	else{                                                             //The first iteration
+		EF.penalty = (CDmean / EF.penalty_initial );                  //penalty= CDmean/p1
+	}
+
+	//cout << "weight FD:  " << WFD << "  weight ED:  " << WED << endl;
+	cout << "CDmean: " << CDmean << "  penalty:" << EF.penalty << endl;
+}
+
+void  Registration::findcorrespondenceKM()
+{
+	
 	//F2 modified method
 
     //graph weight
@@ -232,6 +304,7 @@ void  Registration::findcorrespondence()
 	
 	cout << "Weight OK" << endl;
 	*/
+
 	/*-------KM--------*/
 	Graph graph;
 	graph.GTable = graphweight;
@@ -261,12 +334,15 @@ void  Registration::findcorrespondence()
 	energy.push_back(minenergy);
 	cor.push_back(cor_number);
 
+	pre.push_back(kmsolver.precision);
+	rec.push_back(kmsolver.recall);
+
 	Spoint.resize(cor_number, 3);
 	Tpoint.resize(cor_number, 3);
 	for (int i = 0; i < cor_number; i++){
 		Spoint.row(i) = KP.kpSXYZ.row(SP[i]);
 		Tpoint.row(i) = KP.kpTXYZ.row(TP[i]);
-	}
+	}//update Spoint,Tpoint
 	for (int i = 0; i < cor_number; i++){
 		matchlist[SP[i]][iteration_number] = TP[i];
 	}
@@ -276,7 +352,8 @@ void  Registration::findcorrespondence()
 	
 	
 	
-	// output final matched key points coordinate  (used for test)
+	// Output final matched key points coordinate  (used for test)
+	/*
 	if (iteration_number > 1){
 		ofstream ofs;
 		ofs.open("final matched S.txt");
@@ -330,11 +407,13 @@ void  Registration::findcorrespondence()
 			}
 			ofs.close();
 		}
-	}
+	}*/
+
 	//cal PCFD 
 	//if (iteration_number == 0)  PCFD=calCloudFeatureDistance(cor_number);
 
-	//output energy fraction
+	//Output energy fraction
+	
 	double energy_ED = 0;
 	double energy_FD = 0;
 	double energy_penalty = 0;
@@ -355,7 +434,7 @@ void  Registration::findcorrespondence()
 	energy_FD *= WFD;
 	//energy_penalty = (size - cor_number)*EF.penalty;
 	//cout << "energy fraction: ED  " << energy_ED << "  FD  " << energy_FD << "  penalty  " << energy_penalty << endl;
-	cout << "energy fraction:  ED: " << energy_ED << "  FD:  " << energy_FD  << endl;
+	//cout << "energy fraction:  ED: " << energy_ED << "  FD:  " << energy_FD  << endl;
 	cout << cor_number << " pairs matched " << endl;
 	
 	//cal RMSE and FDM
@@ -374,10 +453,10 @@ void  Registration::findcorrespondence()
 		FDcul += pow((EF.FD[SP[i]][TP[i]]-FDM),2);
 	}
 	FDstd = sqrt(FDcul / cor_number);
-	RMSE /= (cor_number-1);
+	RMSE /= cor_number;
 	RMSE = sqrt(RMSE);
 	rmse.push_back(RMSE);
-	cout << "correspondence RMSE  " << RMSE << "    mean FD  " << FDM << "   std FD  "<<FDstd<< endl;
+	cout << "correspondence RMSE  " << RMSE << "   mean FD  " << FDM << "   std FD  "<< FDstd<< endl;
 	double deltaRMS = RMS - RMSE;
 	double para_RMS = deltaRMS / RMSE;
 	
@@ -396,6 +475,7 @@ void  Registration::findcorrespondence()
 
 	//
 	//
+	/*
 	ofstream ofs3;
 	ostringstream oss3;
 	oss3 << iteration_number << " keypoint transform.txt";
@@ -410,15 +490,194 @@ void  Registration::findcorrespondence()
 		}
 		ofs3.close();
 	}
+	*/
+}
+void  Registration::findcorrespondenceNNR(){
+	//Use the closest point in target cloud as the correspondence for each point in source cloud (H-ICP) 
+	//H-ICP is more efficient than GH-ICP with o(n2)
+	
+	//Reciprocal optimal strategy 
+	//Problem: Too few correspondence found
+	//cout << "Finding correspondence ... ..." << endl;
+	
+	vector<int> SV;
+	vector<int> TV;
+	vector<int> SP;
+	vector<int> TP;
+	double MAXVALIUE = 9e20;
+	double mincd = MAXVALIUE;
+	int minindex = 0;
+	int cor_number = 0;
+	for (size_t i = 0; i < KP.kps_num; i++){
+		for (size_t j = 0; j < KP.kpt_num; j++){
+			if (EF.CD[i][j] < mincd)
+			{
+				mincd = EF.CD[i][j];
+			    minindex = j;
+			}	
+		}
+		SV.push_back(minindex);
+		minindex = 0;
+		mincd = MAXVALIUE;
+	}
+
+
+	for (size_t i = 0; i < KP.kpt_num; i++){
+		for (size_t j = 0; j < KP.kps_num; j++){
+			if (EF.CD[j][i] < mincd)
+			{
+				mincd = EF.CD[j][i];
+				minindex = j;
+			}
+		}
+		TV.push_back(minindex);
+		minindex = 0;
+		mincd = MAXVALIUE;
+	}
+	
+
+	for (size_t i = 0; i < KP.kps_num; i++){
+		if (TV[SV[i]]==i)
+		{
+			SP.push_back(i);
+			TP.push_back(SV[i]);
+			cor_number++;
+			
+			cout << SP[cor_number - 1] << " - " << TP[cor_number - 1] << endl;
+		}
+	}
+	
+	//先Resize啊，没分配内存会报错的
+	Spoint.resize(cor_number, 3);
+	Tpoint.resize(cor_number, 3);
+
+	for (size_t i = 0; i < cor_number; i++){
+		Spoint.row(i) = KP.kpSXYZ.row(SP[i]);
+		Tpoint.row(i) = KP.kpTXYZ.row(TP[i]);
+	}  //update Spoint,Tpoint
+
+
+	cout << cor_number << " pairs matched. " << endl;
+
+	//cal RMSE and FDM
+	double RMSE = 0;
+	double FDcul = 0;
+	FDM = 0;
+	FDstd = 0;
+	for (size_t i = 0; i < cor_number; ++i)
+	{
+		RMSE += pow(Spoint(i, 0) - Tpoint(i, 0), 2) + pow(Spoint(i, 1) - Tpoint(i, 1), 2) + pow(Spoint(i, 2) - Tpoint(i, 2), 2);
+		FDM += EF.FD[SP[i]][TP[i]];
+	}
+	FDM /= cor_number;
+	for (size_t i = 0; i < cor_number; ++i)
+	{
+		FDcul += pow((EF.FD[SP[i]][TP[i]] - FDM), 2);
+	}
+	FDstd = sqrt(FDcul / cor_number);
+	RMSE /= cor_number;
+	RMSE = sqrt(RMSE);
+	rmse.push_back(RMSE);
+	cout << "correspondence RMSE  " << RMSE << "   mean FD  " << FDM << "   std FD  " << FDstd << endl;
+	RMS = RMSE;
 
 }
 
+void  Registration::findcorrespondenceNN(){
+	//Use the closest point in target cloud as the correspondence for each point in source cloud (H-ICP) 
+	//H-ICP is more efficient than GH-ICP with o(n2)
+
+	//Find Closest Point (less than penalty) in Target Cloud
+
+	//cout << "Finding correspondence ... ..." << endl;
+
+	vector<int> SP;
+	vector<int> TP;
+	double MAXVALIUE = 9e20;
+	double mincd = MAXVALIUE;
+	int minindex = 0;
+	int cor_number = 0;
+	for (size_t i = 0; i < KP.kps_num; i++){
+		for (size_t j = 0; j < KP.kpt_num; j++){
+			if (EF.CD[i][j] < mincd)
+			{
+				mincd = EF.CD[i][j];
+				minindex = j;
+			}
+		}
+		if (mincd < EF.penalty)
+		{
+			SP.push_back(i);
+			TP.push_back(minindex);
+			cor_number++;
+		}
+		minindex = 0;
+		mincd = MAXVALIUE;
+	}
+
+
+	//先Resize啊，没分配内存会报错的
+	Spoint.resize(cor_number, 3);
+	Tpoint.resize(cor_number, 3);
+
+	for (size_t i = 0; i < cor_number; i++){
+		Spoint.row(i) = KP.kpSXYZ.row(SP[i]);
+		Tpoint.row(i) = KP.kpTXYZ.row(TP[i]);
+	}  //update Spoint,Tpoint
+
+
+	cout << cor_number << " pairs matched. " << endl;
+
+	//cal RMSE and FDM
+	double RMSE = 0;
+	double FDcul = 0;
+	FDM = 0;
+	FDstd = 0;
+	for (size_t i = 0; i < cor_number; ++i)
+	{
+		RMSE += pow(Spoint(i, 0) - Tpoint(i, 0), 2) + pow(Spoint(i, 1) - Tpoint(i, 1), 2) + pow(Spoint(i, 2) - Tpoint(i, 2), 2);
+		FDM += EF.FD[SP[i]][TP[i]];
+	}
+	FDM /= cor_number;
+	for (size_t i = 0; i < cor_number; ++i)
+	{
+		FDcul += pow((EF.FD[SP[i]][TP[i]] - FDM), 2);
+	}
+	FDstd = sqrt(FDcul / cor_number);
+	RMSE /= cor_number;
+	RMSE = sqrt(RMSE);
+	rmse.push_back(RMSE);
+	cout << "correspondence RMSE  " << RMSE << "   mean FD  " << FDM << "   std FD  " << FDstd << endl;
+	RMS = RMSE;
+
+}
+
+void Registration::adjustweight(double estimated_IoU)
+{
+	if (estimated_IoU / IoU > 1.2)
+	{
+		EF.para1_penalty += 0.1;
+		EF.para2_penalty += 0.1;
+	}
+	else if (IoU/ estimated_IoU > 1.2)
+	{
+		EF.para1_penalty -= 0.1;
+		EF.para2_penalty -= 0.1;
+	}
+	else{ ; }
+	cout << "IoU:  "<<IoU<<"  Penalty_ED: " << EF.para1_penalty << "  Penalty_FD: " << EF.para2_penalty << endl;
+}
+
+
 void  Registration::transformestimation(Eigen::Matrix4d &Rt)
 {
+	
+	
 	//gravitization
 	int cor_number=Spoint.rows();
 	if (cor_number < EF.min_cor) converge = 1;
-
+	//Estimate overlapping rate. Attention! Integer->Double
+	IoU = 1.0*cor_number / (KP.kps_num + KP.kpt_num-cor_number); 
 	/*for (int i = 0; i < cor_number; i++)
 	{
 		Spoint.row(i) -= Spoint.colwise().sum()/cor_number;
@@ -479,7 +738,7 @@ void  Registration::transformestimation(Eigen::Matrix4d &Rt)
 	TSVD.estimateRigidTransformation(*cloud_in, *cloud_out, Rt0);
 	Eigen::Matrix3d R;
 	Eigen::Vector3d t;
-	Rt0 = Rt0.inverse();
+	//Rt0 = Rt0.inverse();
 	R = Rt0.block(0, 0, 3, 3).cast<double>();
 	t = Rt0.block(0, 3, 3, 1).cast<double>();
 
@@ -513,16 +772,30 @@ void  Registration::transformestimation(Eigen::Matrix4d &Rt)
 		converge = 1;
 	}
 
-	//update
-
-	for (int i = 0; i < KP.kpt_num; i++)
+	//Update
+	double RMSEafter = 0;
+	for (int i = 0; i < KP.kps_num; i++) //Finally I find the source of bug. What a fool I am !!!!!  
 	{
-		KP.kpTXYZ.row(i) = (R*(KP.kpTXYZ.row(i)).transpose() + t).transpose();
+		KP.kpSXYZ.row(i) = (R*(KP.kpSXYZ.row(i)).transpose() + t).transpose();
 	}
+	for (int i = 0; i < Spoint.rows(); i++)
+	{
+		Spoint.row(i) = (R*(Spoint.row(i)).transpose() + t).transpose();
+	}
+	for (size_t i = 0; i < Spoint.rows(); ++i)
+	{
+		RMSEafter += pow(Spoint(i, 0) - Tpoint(i, 0), 2) + pow(Spoint(i, 1) - Tpoint(i, 1), 2) + pow(Spoint(i, 2) - Tpoint(i, 2), 2);	
+	}
+	RMSEafter /= Tpoint.rows();
+	RMSEafter = sqrt(RMSEafter);
+	cout << "RMSE after transformation: " << RMSEafter <<endl;
 	
-
-    
+	rmseafter.push_back(RMSEafter);
 	//cout << KP.kpTXYZ << endl;
+	if (converge == 1){
+		if (RMSEafter < nonmax)cout << "Registration Succeed." << endl;
+		else cout << "Registration Failed." << endl;
+	}
 }
 
 /*void  Registration::update(Eigen::Matrix4Xd &TKP, Eigen::Matrix4Xd &TFP, Eigen::Matrix4d &Rt)
@@ -532,16 +805,17 @@ void  Registration::transformestimation(Eigen::Matrix4d &Rt)
 	KP.kpTXYZ = (TKP.block(0,0,TKP.cols(),3)).transpose();
 
 }*/
-void Registration::displayPC(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, Eigen::Matrix4Xd &kpS, Eigen::Matrix4Xd &kpT)
+
+void Registration::displayPCrb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS)
 {
+	//红+蓝
+	Eigen::Matrix<double, 4, Dynamic> CloudS;
+    CloudS.resize(4, cloudS.cols());
+	CloudS = Rt_tillnow*cloudS;
 	
-	Eigen::Matrix<double, 4, Dynamic> CloudT;
-    CloudT.resize(4, cloudT.cols());
-	CloudT = Rt_tillnow*cloudT;
-	
-	Eigen::Matrix<double, 4, Dynamic> KpT;
-	KpT.resize(4, kpT.cols());
-	KpT = Rt_tillnow*kpT;
+	Eigen::Matrix<double, 4, Dynamic> KpS;
+	KpS.resize(4, kpS.cols());
+	KpS = Rt_tillnow*kpS;
 
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
 	viewer->setBackgroundColor(255, 255, 255);
@@ -552,44 +826,45 @@ void Registration::displayPC(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, 
 	pcXYZRGBPtr pointcloudS(new pcXYZRGB());
 	pcXYZRGBPtr pointcloudT(new pcXYZRGB());
 
-	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	for (size_t i = 0; i < cloudT->points.size(); ++i)
 	{
 		pcl::PointXYZRGB pt;
-		pt.x = cloudS->points[i].x;
-		pt.y = cloudS->points[i].y;
-		pt.z = cloudS->points[i].z;
+		pt.x = cloudT->points[i].x;
+		pt.y = cloudT->points[i].y;
+		pt.z = cloudT->points[i].z;
 		pt.r = 255;
 		pt.g = 215;
 		pt.b = 0;
-		pointcloudS->points.push_back(pt);
-	}
-
-	viewer->addPointCloud(pointcloudS, "pointcloudS");
-
-
-	for (size_t i = 0; i < cloudT.cols(); ++i)
-	{
-		pcl::PointXYZRGB pt;
-		pt.x = CloudT(0, i) ;
-		pt.y = CloudT(1, i) ;
-		pt.z = CloudT(2, i);
-		pt.r = 233;
-		pt.g = 233;
-		pt.b = 216;
 		pointcloudT->points.push_back(pt);
 	}
 
 	viewer->addPointCloud(pointcloudT, "pointcloudT");
 
-	for (size_t i = 0; i < kpS.cols(); ++i)
+
+	for (size_t i = 0; i < cloudS.cols(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = CloudS(0, i) ;
+		pt.y = CloudS(1, i) ;
+		pt.z = CloudS(2, i);
+		pt.r = 233;
+		pt.g = 233;
+		pt.b = 216;
+		pointcloudS->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudS, "pointcloudS");
+
+	for (size_t i = 0; i < KpS.cols(); ++i)
 	{
 		pcl::PointXYZ pt;
-		pt.x = kpS(0, i);
-		pt.y = kpS(1, i);
-		pt.z = kpS(2, i);
+		pt.x = KpS(0, i);
+		pt.y = KpS(1, i);
+		pt.z = KpS(2, i);
 		sprintf(t, "%d", n);
 		s = t;
-		viewer->addSphere(pt, 0.2, 0.0, 0.0, 1.0, s);
+		viewer->addSphere(pt, 0.001, 1.0, 0.0, 0.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 1.0, 0.0, 0.0, s); //large scale
 		n++;
 	
 	}
@@ -602,12 +877,183 @@ void Registration::displayPC(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &cloudT, 
 		pt.z = KpT(2, i);
 		sprintf(t, "%d", n);
 		s = t;
-		viewer->addSphere(pt, 0.2, 1.0, 0.0, 0.0, s);
+		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s);  //large scale
 		n++;
 
 	}
 
 	cout << "Click X(close) to continue..."<<endl;
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
+void Registration::displayPCvb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS)
+{
+	//紫+蓝
+	Eigen::Matrix<double, 4, Dynamic> CloudS;
+	CloudS.resize(4, cloudS.cols());
+	CloudS = Rt_tillnow*cloudS;
+
+	Eigen::Matrix<double, 4, Dynamic> KpS;
+	KpS.resize(4, kpS.cols());
+	KpS = Rt_tillnow*kpS;
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Registered Result"));
+	viewer->setBackgroundColor(255, 255, 255);
+	char t[256];
+	string s;
+	int n = 0;
+
+	pcXYZRGBPtr pointcloudS(new pcXYZRGB());
+	pcXYZRGBPtr pointcloudT(new pcXYZRGB());
+
+	for (size_t i = 0; i < cloudT->points.size(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = cloudT->points[i].x;
+		pt.y = cloudT->points[i].y;
+		pt.z = cloudT->points[i].z;
+		pt.r = 255;
+		pt.g = 215;
+		pt.b = 0;
+		pointcloudT->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudT, "pointcloudT");
+
+
+	for (size_t i = 0; i < cloudS.cols(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = CloudS(0, i);
+		pt.y = CloudS(1, i);
+		pt.z = CloudS(2, i);
+		pt.r = 233;
+		pt.g = 233;
+		pt.b = 216;
+		pointcloudS->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudS, "pointcloudS");
+
+	for (size_t i = 0; i < KpS.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = KpS(0, i);
+		pt.y = KpS(1, i);
+		pt.z = KpS(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 1.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 1.0, 0.0, 1.0, s); //large scale
+		n++;
+
+	}
+
+	for (size_t i = 0; i < KpT.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = KpT(0, i);
+		pt.y = KpT(1, i);
+		pt.z = KpT(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s);  //large scale
+		n++;
+
+	}
+
+	cout << "Click X(close) to continue..." << endl;
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
+void Registration::displayPCyb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS, Eigen::Matrix4Xd &KpT, Eigen::Matrix4Xd &kpS)
+{
+	//黄+蓝
+	Eigen::Matrix<double, 4, Dynamic> CloudS;
+	CloudS.resize(4, cloudS.cols());
+	CloudS = Rt_tillnow*cloudS;
+
+	Eigen::Matrix<double, 4, Dynamic> KpS;
+	KpS.resize(4, kpS.cols());
+	KpS = Rt_tillnow*kpS;
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	viewer->setBackgroundColor(255, 255, 255);
+	char t[256];
+	string s;
+	int n = 0;
+
+	pcXYZRGBPtr pointcloudS(new pcXYZRGB());
+	pcXYZRGBPtr pointcloudT(new pcXYZRGB());
+
+	for (size_t i = 0; i < cloudT->points.size(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = cloudT->points[i].x;
+		pt.y = cloudT->points[i].y;
+		pt.z = cloudT->points[i].z;
+		pt.r = 255;
+		pt.g = 215;
+		pt.b = 0;
+		pointcloudT->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudT, "pointcloudT");
+
+
+	for (size_t i = 0; i < cloudS.cols(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = CloudS(0, i);
+		pt.y = CloudS(1, i);
+		pt.z = CloudS(2, i);
+		pt.r = 233;
+		pt.g = 233;
+		pt.b = 216;
+		pointcloudS->points.push_back(pt);
+	}
+
+	viewer->addPointCloud(pointcloudS, "pointcloudS");
+
+	for (size_t i = 0; i < KpS.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = KpS(0, i);
+		pt.y = KpS(1, i);
+		pt.z = KpS(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 1.0, 1.0, 0.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 1.0, 1.0, 0.0, s); //large scale
+		n++;
+
+	}
+
+	for (size_t i = 0; i < KpT.cols(); ++i)
+	{
+		pcl::PointXYZ pt;
+		pt.x = KpT(0, i);
+		pt.y = KpT(1, i);
+		pt.z = KpT(2, i);
+		sprintf(t, "%d", n);
+		s = t;
+		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
+		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s);  //large scale
+		n++;
+
+	}
+
+	cout << "Click X(close) to continue..." << endl;
 	while (!viewer->wasStopped())
 	{
 		viewer->spinOnce(100);
@@ -635,7 +1081,7 @@ void Registration::displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4
 		pcl::PointXYZRGB pt;
 		pt.x = cloudS->points[i].x;
 		pt.y = cloudS->points[i].y;
-		pt.z= cloudS->points[i].z;
+		pt.z = cloudS->points[i].z;
 		pt.r = 0;
 		pt.g = 255;
 		pt.b = 0;
@@ -699,25 +1145,25 @@ void Registration::displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4
 	}
 }
 
-void Registration::save(const pcXYZIPtr &cloudfT, const pcXYZIPtr &cloudT, Eigen::MatrixX3d &kpTXYZ_0, Eigen::MatrixX3d &kpSXYZ_0){
-	tP.resize(4, cloudT->size());
-	tfP.resize(4, cloudfT->size());
+void Registration::save(const pcXYZIPtr &cloudfS, const pcXYZIPtr &cloudS, Eigen::MatrixX3d &kpSXYZ_0, Eigen::MatrixX3d &kpTXYZ_0){
+	sP.resize(4, cloudS->size());
+	sfP.resize(4, cloudfS->size());
 	tkP.resize(4, kpTXYZ_0.rows());
 	skP.resize(4, kpSXYZ_0.rows());
 
-	for (size_t i = 0; i < cloudT->size(); ++i)
+	for (size_t i = 0; i < cloudS->size(); ++i)
 	{
-		tP(0, i) = cloudT->points[i].x;
-		tP(1, i) = cloudT->points[i].y;
-		tP(2, i) = cloudT->points[i].z;
-		tP(3, i) = 1;
+		sP(0, i) = cloudS->points[i].x;
+		sP(1, i) = cloudS->points[i].y;
+		sP(2, i) = cloudS->points[i].z;
+		sP(3, i) = 1;
 	}
-	for (size_t i = 0; i < cloudfT->size(); ++i)
+	for (size_t i = 0; i < cloudfS->size(); ++i)
 	{
-		tfP(0, i) = cloudfT->points[i].x;
-		tfP(1, i) = cloudfT->points[i].y;
-		tfP(2, i) = cloudfT->points[i].z;
-		tfP(3, i) = 1;
+		sfP(0, i) = cloudfS->points[i].x;
+		sfP(1, i) = cloudfS->points[i].y;
+		sfP(2, i) = cloudfS->points[i].z;
+		sfP(3, i) = 1;
 	}
 	for (size_t i = 0; i < kpTXYZ_0.rows(); ++i)
 	{
@@ -738,7 +1184,7 @@ void Registration::save(const pcXYZIPtr &cloudfT, const pcXYZIPtr &cloudT, Eigen
 
 
 //pcl::PointCloud<pcl::PointXYZI>::Ptr Registration::output(const pcXYZIPtr &cloud, Eigen::Matrix4d &Rt)
-void Registration::output(Eigen::Matrix4Xd &TP)
+void Registration::output(Eigen::Matrix4Xd &SP)
 {
 	
 	//Eigen::Matrix<double, 3, Dynamic> TP;
@@ -749,14 +1195,14 @@ void Registration::output(Eigen::Matrix4Xd &TP)
 	//cloud->points[i].y = TP(1, i);
 	//cloud->points[i].z = TP(2, i);
 	Eigen::Matrix<double, 4, Dynamic> TransPC;
-	TransPC.resize(4, TP.cols());
-	TransPC = Rt_tillnow*TP;
+	TransPC.resize(4, SP.cols());
+	TransPC = Rt_tillnow*SP;
 
 	ofstream ofs;
 	ostringstream oss;
 	oss << iteration_number <<" After transform.txt";
 	if (index_output == 0)		ofs.open(oss.str());
-	else ofs.open("TC_keypoint_after_transform.txt");
+	else ofs.open("SC_keypoint_after_transform.txt");
 
 	if (ofs.is_open())
 	{
@@ -765,7 +1211,7 @@ void Registration::output(Eigen::Matrix4Xd &TP)
 			
 			if (converge == 1){
 				
-				if (i % 5 == 0){ //最终结果再抽稀输出 (实验用，后期去）
+				if (i % 2 == 0){ //最终结果再抽稀输出 (实验用，后期去）
 					
 					ofs << setiosflags(ios::fixed) << setprecision(3) << TransPC(0, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(1, i) << "  "
@@ -776,7 +1222,7 @@ void Registration::output(Eigen::Matrix4Xd &TP)
 			}
 			else
 			{
-				if (i % 5 == 0){ //再抽稀输出
+				if (i % 10 == 0){ //再抽稀输出
 					ofs << setiosflags(ios::fixed) << setprecision(3) << TransPC(0, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(1, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(2, i) << endl;
@@ -787,12 +1233,12 @@ void Registration::output(Eigen::Matrix4Xd &TP)
 		ofs.close();
 	}
 
+	cout << "Output finished ... ..." << endl;
 	if (index_output == 1){
 		ofstream ofs2;
 		ofs2.open("Final Rt.txt");
 		if (ofs2.is_open())
 		{
-		
 			ofs2 << Rt_tillnow << endl;
 			ofs2.close();
 		}
@@ -806,9 +1252,9 @@ void Registration::output(Eigen::Matrix4Xd &TP)
 
 void Registration::energyRMSoutput(){
 	
-	energy.resize(iteration_number - 1);
-	rmse.resize(iteration_number - 1);
-	cor.resize(iteration_number - 1);
+	energy.resize(iteration_number);
+	rmse.resize(iteration_number);
+	cor.resize(iteration_number);
 
 	ofstream ofs;
 	
@@ -817,7 +1263,7 @@ void Registration::energyRMSoutput(){
 	{
 		for (size_t i = 0; i < energy.size(); ++i)
 		{
-			ofs << energy[i] << endl;
+			ofs << i + 1 << "\t" << energy[i] << endl;
 		}
 		ofs.close();
 	}
@@ -827,7 +1273,7 @@ void Registration::energyRMSoutput(){
 	{
 		for (size_t i = 0; i < rmse.size(); ++i)
 		{
-			ofs << rmse[i] << endl;
+			ofs << i+1 <<"\t"<<rmse[i] << endl;
 		}
 		ofs.close();
 	}
@@ -837,11 +1283,31 @@ void Registration::energyRMSoutput(){
 	{
 		for (size_t i = 0; i < cor.size(); ++i)
 		{
-			ofs << cor[i] << endl;
+			ofs << i + 1 << "\t"<<cor[i] << endl;
 		}
 		ofs.close();
 	}
 
+	ofs.open("RMSE after transformation.txt");
+	if (ofs.is_open())
+	{
+		for (size_t i = 0; i < rmseafter.size(); ++i)
+		{
+			ofs << i + 1 << "\t" << rmseafter[i] << endl;
+		}
+		ofs.close();
+	}
+
+	ofs.open("P and R.txt");
+	if (ofs.is_open())
+	{
+		ofs << "iteration\tprecision\trecall\n";
+		for (size_t i = 0; i < rec.size(); ++i)
+		{
+			ofs << i + 1 << "\t" << pre[i]<<"\t"<<rec[i] << endl;
+		}
+		ofs.close();
+	}
 }
 
 
@@ -875,7 +1341,6 @@ void Registration::calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0)
 	{
 		cout <<i<<"   "<< gtmatchlist[i] << endl;
 	}*/
-	
 }
 
 void Registration::cal_recall_precision()
