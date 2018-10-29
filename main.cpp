@@ -32,7 +32,7 @@ using namespace Eigen;
 //By Pan Yue etal. @WHU
 //Transform source cloud into target cloud's reference system
 
-int main()
+int main(int argc, char** argv)
 {
 
 	cout << "!----------------------------------------------------------------------------!" << endl;
@@ -41,21 +41,32 @@ int main()
 	cout << "!                               by Yue et al.                                !" << endl;
 	cout << "!----------------------------------------------------------------------------!" << endl;
 	
-
+	if (argc != 5) return (-1);
+	
+	
 	//timing
 	clock_t t1, t2, t3, t4, t5, t6, t7, t8, t9, ts1, ts2, ts3, ts4;
 	/*----------------------- 1. Data input-------------------------*/
    
 	string filenameS, filenameT, paralistfile;
 	double estimated_IoU;
-	cout << "input target file" << endl;
+	/*cout << "input target file" << endl;
 	cin >> filenameT;
 	cout << "input source file" << endl;
 	cin >> filenameS;
 	cout << "input paralist file" << endl;
 	cin >> paralistfile;
 	cout << "Estimated IoU (overlapping rate)" << endl;
-	cin >> estimated_IoU;
+	cin >> estimated_IoU;*/
+
+	filenameT = argv[1];
+	filenameS = argv[2];
+	paralistfile = argv[3];
+	estimated_IoU = atof(argv[4]);
+	cout << "input target file: " << filenameT << endl;
+	cout << "input source file: " << filenameS << endl;
+	cout << "input parameter list: " << paralistfile << endl;
+	cout << "Estimated IoU (overlapping rate): " << estimated_IoU << endl;
 
 	pcXYZIPtr pointCloudS(new pcXYZI()), pointCloudT(new pcXYZI());
 	DataIo io;
