@@ -31,7 +31,13 @@ If you find our work useful in your research, please consider citing:
 ### [Poster](https://github.com/YuePanEdward/YuePanEdward.github.io/blob/master/assets/3DVposter.pdf)
 
 
-Now available on Windows
+### Now available on Windows.
+Compiled with Visual Studio 12 2013 Win64 Release
+
+PCL 1.8 Required
+
+OpenCV 2.8 Required
+
 
 
 ### How to use
