@@ -13,6 +13,10 @@ After the conference, we have improved the original algorithm on its efficiency 
 
 To highlight two key innovative points of the algorithm, we renamed IGSP as GH-ICP.
 
+ ![alt text]GH-ICPworkflow.jpg)
+ 
+ ![alt text](showresult2.jpg)
+ 
 ### [Video](https://www.youtube.com/watch?v=DZr-8AceSqA)
 
 ### [Paper](https://arxiv.org/abs/1808.03899) 
