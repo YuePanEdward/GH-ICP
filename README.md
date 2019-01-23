@@ -38,20 +38,25 @@ If you find our work useful in your research, please consider citing:
 ### Now available on Windows.
 Compiled with Visual Studio 12 2013 Win64 Release
 
-PCL 1.8 Required
+> PCL 1.8+ Required
 
-OpenCV 2.8 Required
+> OpenCV 2.4+ Required
 
+> LibLas Required
+
+> VTK 6.2+ Required
+
+> Boost 1.59+ Requried
 
 
 ### How to use
-1.Input Target cloud
+> 1.Input Target cloud
 
-2.Input Source cloud
+> 2.Input Source cloud
 
-3.Input parameter list or directly use the GH-ICP default settings for pairwise large-scale TLS registration 
+> 3.Input parameter list or directly use the GH-ICP default settings for pairwise large-scale TLS registration 
 
-4.Estimate the approximate overlapping rate (IoU) of the point cloud pair
+> 4.Estimate the approximate overlapping rate (IoU) of the point cloud pair
 
 ### Parameter list 
 Take the TLS (outdoor buildings) registration parameter setting as an example.
