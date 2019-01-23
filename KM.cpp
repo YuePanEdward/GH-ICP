@@ -9,6 +9,7 @@ using namespace std;
 using namespace Eigen;
 
 
+/*找增广路*/
 bool Km::findpath(int x)
 {
 	double tempDelta;
@@ -29,7 +30,7 @@ bool Km::findpath(int x)
 }
 
 
-
+/*KM算法主程序*/
 void Km::kmsolve()
 {
 	const int INF2 = 1000;
@@ -106,9 +107,11 @@ void Km::kmsolve()
 	//return gra.energy;
 
 }
+
+/*KM算法能量计算*/
 double Km::energy()
 {
-	const int INF = 1000;
+	const int INF = 10000;
 	int size = gra.n;
 	gra.energy = 0;
 	for (int i = 0; i < size; i++)
@@ -120,7 +123,8 @@ double Km::energy()
 	return gra.energy;
 }
 
-int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int> &TPout)
+/*输出KM找到的对应点集*/
+int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int> &TPout)   
 {
 	//const int INF = 1000;
 
@@ -203,6 +207,8 @@ int Km::output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int>
 
 	return cor_number;
 }
+
+
 //test for KM
 /*vector<vector<double>> Weight(3, vector<double>(3));
 Weight[0][0] = -5;

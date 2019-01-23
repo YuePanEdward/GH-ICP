@@ -21,13 +21,14 @@ namespace keypoint
 		size_t minPtNum;
 		float radiusNonMax;
 
-		keypointOption()
+		/*
+		keypointOption(float r_feature,float radius_feature,size_t minNum, float r_non_max)
 		{
-			radiusFeatureCalculation = 0.4;
-			ratioMax = 0.92;
-			minPtNum = 20;
-			radiusNonMax = 0.4;
-		}
+			radiusFeatureCalculation = r_feature;
+			ratioMax = radius_feature;
+			minPtNum = minNum;
+			radiusNonMax = r_non_max;
+		}*/
 	};
 
 	class CkeypointDetection :public PrincipleComponentAnalysis

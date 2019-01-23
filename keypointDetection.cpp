@@ -7,10 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
 
-#include <liblas/liblas.hpp>
-#include <liblas/version.hpp>
-#include <liblas/point.hpp>
-
 #include <fstream>
 #include <string.h>
 

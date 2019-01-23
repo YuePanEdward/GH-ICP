@@ -1,6 +1,6 @@
 #include "utility.h"
 #include "fpfh.h"
-#include <pcl\PointIndices.h>
+#include <pcl/PointIndices.h>
 
 
 using namespace  std;
@@ -13,7 +13,7 @@ fpfhFeaturePtr FPFHfeature::compute_fpfh_feature(const pcXYZIPtr &input_cloud){
 	pcl::search::KdTree<pcl::PointXYZI>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZI>());
 	est_normal.setInputCloud(input_cloud);
 	est_normal.setSearchMethod(tree);
-	est_normal.setKSearch(10);
+	est_normal.setKSearch(20);
 	//est_normal.setRadiusSearch(0.02);
 	est_normal.compute(*point_normal);
 	
@@ -25,7 +25,7 @@ fpfhFeaturePtr FPFHfeature::compute_fpfh_feature(const pcXYZIPtr &input_cloud){
 	est_fpfh.setInputCloud(input_cloud);
 	est_fpfh.setInputNormals(point_normal);
 	est_fpfh.setSearchMethod(tree);
-	est_fpfh.setKSearch(10);
+	est_fpfh.setKSearch(20);
 	//est_fpfh.setRadiusSearch(0.03);
 	est_fpfh.compute(*fpfh);
 

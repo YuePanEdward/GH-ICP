@@ -1,8 +1,8 @@
 #ifndef RG
 #define RG
 
-#include<pcl\point_cloud.h>
-#include<pcl\point_types.h>
+#include<pcl/point_cloud.h>
+#include<pcl/point_types.h>
 #include <Eigen/dense>
 #include <vector>
 #include "utility.h"
@@ -38,6 +38,16 @@ namespace Reg
 		int kpt_num;
 		Eigen::Matrix<double, Dynamic, 3> kpSXYZ;
 		Eigen::Matrix<double, Dynamic, 3> kpTXYZ;
+		
+		/*
+		Keypoints(int nkps, int nkpt, Eigen::Matrix<double, Dynamic, 3> & kps, Eigen::Matrix<double, Dynamic, 3> & kpt)
+		{
+			kps_num = nkps;
+			kpt_num = nkpt;
+			kpSXYZ = kps;
+			kpTXYZ = kpt;
+		}
+		*/
 	};
 
 	
@@ -86,6 +96,11 @@ namespace Reg
 
 		double calCloudFeatureDistance(int cor_num);
 		
+		//Comparison with other methods
+		void Reg_3DNDT(pcXYZIPtr CloudS, pcXYZIPtr CloudT);
+		void Reg_FPFHSAC(pcXYZIPtr CloudS, pcXYZIPtr CloudT);
+		void Reg_ClassicICP(pcXYZIPtr CloudS, pcXYZIPtr CloudT);
+
 		double PCFD;          //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
 
 		int iteration_number; //real iteration number from 1
@@ -103,6 +118,9 @@ namespace Reg
 
 		double converge_t;    //convergence condition in translation (unit:m)
 		double converge_r;    //convergence condition in rotation    (unit:degree)
+
+		float adjustweight_step;   //Weight adjustment for one iteration (0.1)
+		float adjustweight_ratio;  //Weight would be adjusted if the IoU between expected value and calculated value is beyond this value (1.2)
 
 		double gt_maxdis;     //ground truth max distance for correspondence keypoint pair
 
@@ -125,6 +143,8 @@ namespace Reg
 		vector<int> cor;
 		vector<double> pre;  //precision
 		vector<double> rec;  //recall
+
+
 	protected:
 
 	private:

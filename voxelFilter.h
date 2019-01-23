@@ -1,6 +1,5 @@
-#pragma once
-
-#include "stdafx.h"
+#ifndef VOXEL_F
+#define VOXEL_F
 
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
@@ -121,3 +120,5 @@ public:
 		return true;
 	}
 };
+
+#endif //VOXEL_F

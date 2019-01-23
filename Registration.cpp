@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <fstream>
 #include <Eigen/dense>
-#include "dataIo.h"
+#include "dataio.h"
 #include "stdlib.h"
 #include "KM.h"
 #include "Registration.h"
@@ -17,19 +17,14 @@
 #include "keypointDetection.h"
 #include "StereoBinaryFeature.h"
 #include "fpfh.h"
-
-#include <pcl\filters\extract_indices.h>
+#include <pcl/registration/ndt.h>
+#include <pcl/filters/extract_indices.h>
 #include <pcl/visualization/common/common.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/registration/transformation_estimation_svd.h>
 #include "utility.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/function.hpp>
 
-#include <liblas/liblas.hpp>
-#include <liblas/version.hpp>
-#include <liblas/point.hpp>
 
 #include <fstream>
 #include <string.h>
@@ -654,15 +649,15 @@ void  Registration::findcorrespondenceNN(){
 
 void Registration::adjustweight(double estimated_IoU)
 {
-	if (estimated_IoU / IoU > 1.2)
+	if (estimated_IoU / IoU > adjustweight_ratio)
 	{
-		EF.para1_penalty += 0.1;
-		EF.para2_penalty += 0.1;
+		EF.para1_penalty += adjustweight_step;
+		EF.para2_penalty += adjustweight_step;
 	}
-	else if (IoU/ estimated_IoU > 1.2)
+	else if (IoU / estimated_IoU >adjustweight_ratio)
 	{
-		EF.para1_penalty -= 0.1;
-		EF.para2_penalty -= 0.1;
+		EF.para1_penalty -= adjustweight_step;
+		EF.para2_penalty -= adjustweight_step;
 	}
 	else{ ; }
 	cout << "IoU:  "<<IoU<<"  Penalty_ED: " << EF.para1_penalty << "  Penalty_FD: " << EF.para2_penalty << endl;
@@ -948,7 +943,7 @@ void Registration::displayPCvb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 		pt.z = KpS(2, i);
 		sprintf(t, "%d", n);
 		s = t;
-		viewer->addSphere(pt, 0.001, 1.0, 0.0, 1.0, s); //small scale
+		viewer->addSphere(pt, 0.001, 0.0, 1.0, 1.0, s); //small scale
 		//viewer->addSphere(pt, 0.8, 1.0, 0.0, 1.0, s); //large scale
 		n++;
 
@@ -1211,7 +1206,7 @@ void Registration::output(Eigen::Matrix4Xd &SP)
 			
 			if (converge == 1){
 				
-				if (i % 2 == 0){ //最终结果再抽稀输出 (实验用，后期去）
+				if (i % 1 == 0){ //最终结果再抽稀输出 (实验用，后期去）
 					
 					ofs << setiosflags(ios::fixed) << setprecision(3) << TransPC(0, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(1, i) << "  "
@@ -1220,9 +1215,9 @@ void Registration::output(Eigen::Matrix4Xd &SP)
 				}
 
 			}
-			else
+			else if (converge==0 && iteration_number%4==0)
 			{
-				if (i % 10 == 0){ //再抽稀输出
+				if (i % 2 == 0){ //再抽稀输出
 					ofs << setiosflags(ios::fixed) << setprecision(3) << TransPC(0, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(1, i) << "  "
 						<< setiosflags(ios::fixed) << setprecision(3) << TransPC(2, i) << endl;
@@ -1414,4 +1409,97 @@ double Registration::calCloudFeatureDistance(int cor_num){
 	cloudfeaturedistance = 2.0*cor_num / (KP.kps_num + KP.kpt_num);
 	return cloudfeaturedistance;
 	//used for multi-view registration as the weight of MST
+}
+
+//Comparison with other methods
+void Registration::Reg_3DNDT(pcXYZIPtr CloudS, pcXYZIPtr CloudT){
+
+	
+	// Initializing Normal Distributions Transform (NDT).
+	pcl::NormalDistributionsTransform<pcl::PointXYZI, pcl::PointXYZI> ndt;
+
+	// Setting scale dependent NDT parameters
+	// Setting minimum transformation difference for termination condition.
+	ndt.setTransformationEpsilon(0.01);
+	// Setting maximum step size for More-Thuente line search.
+	ndt.setStepSize(0.1);
+	//Setting Resolution of NDT grid structure (VoxelGridCovariance).
+	ndt.setResolution(1.0);
+
+	// Setting max number of registration iterations.
+	ndt.setMaximumIterations(35);
+
+	// Setting point cloud to be aligned.
+	ndt.setInputSource(CloudS);
+	// Setting point cloud to be aligned to.
+	ndt.setInputTarget(CloudT);
+
+	// Set initial alignment estimate found using robot odometry.
+	//Eigen::AngleAxisf init_rotation(0, Eigen::Vector3f::UnitZ());
+	//Eigen::Translation3f init_translation(0, 0, 0);
+	//Eigen::Matrix4f init_guess = (init_translation * init_rotation).matrix();
+
+	// Calculating required rigid transform to align the input cloud to the target cloud.
+	pcl::PointCloud<pcl::PointXYZI>::Ptr output_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+	ndt.align(*output_cloud);//without initial guess
+	//ndt.align(*output_cloud, init_guess); //with initial guess
+	
+	std::cout << "Normal Distributions Transform has converged:" << ndt.hasConverged()
+		<< " score: " << ndt.getFitnessScore() << std::endl;
+
+	// Transforming unfiltered, input cloud using found transform.
+	//pcl::transformPointCloud(*CloudS, *CloudT, ndt.getFinalTransformation());
+
+	// Saving transformed input cloud.
+	pcl::io::savePCDFileASCII("Result_3DNDT.pcd", *output_cloud);
+	
+	cout << "3D NDT registration done ..." << endl;
+	//For Visualization
+	/*
+	// Initializing point cloud visualizer
+	boost::shared_ptr<pcl::visualization::PCLVisualizer>
+		viewer_final(new pcl::visualization::PCLVisualizer("3DNDT"));
+	viewer_final->setBackgroundColor(0, 0, 0);
+
+	// Coloring and visualizing target cloud (red).
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZI>
+		target_color(CloudT, 255, 0, 0);
+	viewer_final->addPointCloud<pcl::PointXYZI>(CloudT, target_color, "target cloud");
+	viewer_final->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
+		1, "target cloud");
+
+	// Coloring and visualizing transformed input cloud (green).
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZI>
+		output_color(output_cloud, 0, 255, 0);
+	viewer_final->addPointCloud<pcl::PointXYZI>(output_cloud, output_color, "output cloud");
+	viewer_final->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,
+		1, "output cloud");
+
+	// Starting visualizer
+	viewer_final->addCoordinateSystem(1.0, "global");
+	viewer_final->initCameraParameters();
+
+	// Wait until visualizer window is closed.
+	while (!viewer_final->wasStopped())
+	{
+		viewer_final->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}*/
+}
+
+void Registration::Reg_FPFHSAC(pcXYZIPtr CloudS, pcXYZIPtr CloudT){
+
+	FPFHfeature fpfh0;
+	fpfhFeaturePtr source_fpfh = fpfh0.compute_fpfh_feature(CloudS);
+	fpfhFeaturePtr target_fpfh = fpfh0.compute_fpfh_feature(CloudT);
+	//fpfh.displayhistogram(source_fpfh, 1);
+	pcXYZIPtr FPFHSAC(new pcXYZI());
+	FPFHSAC = fpfh0.fpfhalign(CloudS, CloudT, source_fpfh, target_fpfh);
+	//fpfh0.displaycorrespondence(CloudS, CloudT, FPFHSAC, source_fpfh, target_fpfh);
+	
+	// Saving transformed input cloud.
+	pcl::io::savePCDFileASCII("Result_FPFHSAC.pcd", *FPFHSAC);
+
+	cout << "FPFH SAC registration done ..." << endl;
+
 }

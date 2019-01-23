@@ -5,7 +5,7 @@
 #include <opencv2\core\core_c.h>
 #include <pcl\registration\correspondence_rejection.h>
 #include <pcl\registration\transformation_estimation_svd.h>
-#include <glog/logging.h>
+//#include <glog/logging.h>
 #include <concurrent_vector.h>
 #include <ppl.h>
 

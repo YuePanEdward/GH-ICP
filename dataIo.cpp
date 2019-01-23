@@ -1,4 +1,4 @@
-#include "dataIo.h"
+#include "dataio.h"
 #include "utility.h"
 
 #include <pcl/visualization/common/common.h>
@@ -12,7 +12,7 @@
 using namespace  std;
 using namespace  utility;
 
-bool DataIo::readPcdFile(const std::string &fileName, const pcXYZIPtr &pointCloud)
+bool DataIo::readPcdFile(const std::string &fileName, const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud)
 {
 	if (pcl::io::loadPCDFile<pcl::PointXYZI>(fileName, *pointCloud) == -1) //* load the file
 	{
@@ -23,7 +23,7 @@ bool DataIo::readPcdFile(const std::string &fileName, const pcXYZIPtr &pointClou
 	return true;
 }
 
-bool DataIo::readPcdFileXYZ(const std::string &fileName, const pcXYZPtr &pointCloud)
+bool DataIo::readPcdFileXYZ(const std::string &fileName, const pcl::PointCloud<pcl::PointXYZ>::Ptr &pointCloud)
 {
 	if (pcl::io::loadPCDFile<pcl::PointXYZ>(fileName, *pointCloud) == -1) //* load the file
 	{
@@ -35,7 +35,7 @@ bool DataIo::readPcdFileXYZ(const std::string &fileName, const pcXYZPtr &pointCl
 }
 
 
-bool DataIo::writePcdFile(const string &fileName, const pcXYZIPtr &pointCloud)
+bool DataIo::writePcdFile(const string &fileName, const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud)
 {
 	if (pcl::io::savePCDFileBinary(fileName,*pointCloud) == -1) //* load the file
 	{
@@ -45,7 +45,7 @@ bool DataIo::writePcdFile(const string &fileName, const pcXYZIPtr &pointCloud)
 	return true;
 }
 
-bool DataIo::writePcdFileXYZ(const string &fileName, const pcXYZPtr &pointCloud)
+bool DataIo::writePcdFileXYZ(const string &fileName, const pcl::PointCloud<pcl::PointXYZ>::Ptr &pointCloud)
 {
 	if (pcl::io::savePCDFileBinary(fileName, *pointCloud) == -1) //* load the file
 	{
@@ -54,6 +54,166 @@ bool DataIo::writePcdFileXYZ(const string &fileName, const pcXYZPtr &pointCloud)
 	}
 	return true;
 }
+
+bool DataIo::readLasFileHeader(const std::string &fileName, liblas::Header& header)
+{
+	if (fileName.substr(fileName.rfind('.')).compare(".las"))
+	{
+		return 0;
+	}
+	else
+	{
+		std::ifstream ifs;
+		ifs.open(fileName, std::ios::in | std::ios::binary);
+		if (ifs.bad())
+		{
+			return 0;
+		}
+
+		liblas::ReaderFactory f;
+		liblas::Reader reader = f.CreateWithStream(ifs);
+
+		header = reader.GetHeader();
+	}
+
+	return 1;
+}
+
+
+bool DataIo::readLasFile(const std::string &fileName, pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud)
+{
+	if (fileName.substr(fileName.rfind('.')).compare(".las"))
+	{
+		return 0;
+	}
+
+	std::ifstream ifs;
+	ifs.open(fileName, std::ios::in | std::ios::binary);
+	if (ifs.bad())
+	{
+		cout << "未发现匹配项" << endl;
+	}
+	liblas::ReaderFactory f;
+	liblas::Reader reader = f.CreateWithStream(ifs);
+	liblas::Header const& header = reader.GetHeader();
+
+	//header里可以直接提bounding box 出来
+	double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
+	Xmin = header.GetMinX();
+	Ymin = header.GetMinY();
+	Zmin = header.GetMinZ();
+	Xmax = header.GetMaxX();
+	Ymax = header.GetMaxY();
+	Zmax = header.GetMaxZ();
+
+	while (reader.ReadNextPoint())
+	{
+		const liblas::Point& p = reader.GetPoint();
+		pcl::PointXYZI  pt;
+		pt.x = p.GetX();
+		pt.y = p.GetY();
+		pt.z = p.GetZ();
+		pt.intensity = p.GetIntensity();
+		pointCloud->points.push_back(pt);
+	}
+
+	return 1;
+}
+
+bool DataIo::readLasFile(const std::string &fileName, pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud, double & X_min, double  & Y_min)
+{
+	if (fileName.substr(fileName.rfind('.')).compare(".las"))
+	{
+		return 0;
+	}
+
+	std::ifstream ifs;
+	ifs.open(fileName, std::ios::in | std::ios::binary);
+	if (ifs.bad())
+	{
+		cout << "未发现匹配项" << endl;
+	}
+	liblas::ReaderFactory f;
+	liblas::Reader reader = f.CreateWithStream(ifs);
+	liblas::Header const& header = reader.GetHeader();
+
+	//header里可以直接提bounding box 出来
+	double Xmin, Ymin, Zmin, Xmax, Ymax, Zmax;
+	Xmin = header.GetMinX();
+	Ymin = header.GetMinY();
+	Zmin = header.GetMinZ();
+	Xmax = header.GetMaxX();
+	Ymax = header.GetMaxY();
+	Zmax = header.GetMaxZ();
+
+	//int i = 0;
+	/*while循环中遍历所有的点;*/
+	while (reader.ReadNextPoint())
+	{
+		const liblas::Point& p = reader.GetPoint();
+		//i++;
+		pcl::PointXYZI  pt;
+		/*将重心化后的坐标和强度值赋值给PCL中的点;*/
+		/*做一个平移，否则在WGS84 下的点坐标太大了，会造成精度损失的 因为las的读取点数据是double的，而pcd是int的;*/
+		pt.x = p.GetX() - Xmin;
+		pt.y = p.GetY() - Ymin;
+		pt.z = p.GetZ();
+		pt.intensity = p.GetIntensity();
+		pointCloud->points.push_back(pt);
+	}
+
+	// 平移后坐标原点
+	X_min = Xmin;
+	Y_min = Ymin;
+
+	return 1;
+}
+
+bool DataIo::writeLasFile(const std::string &fileName, pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud, double X_min, double Y_min)
+{
+	Bounds bound;
+	getCloudBound(*pointCloud, bound);
+
+	ofstream ofs;
+	ofs.open(fileName, std::ios::out | std::ios::binary);
+	if (ofs.is_open())
+	{
+		liblas::Header header;
+		header.SetDataFormatId(liblas::ePointFormat2);
+		header.SetVersionMajor(1);
+		header.SetVersionMinor(2);
+		header.SetMin(bound.min_x + X_min, bound.min_y + Y_min, bound.min_z);
+		header.SetMax(bound.max_x + X_min, bound.max_y + Y_min, bound.max_z);
+		header.SetOffset((bound.min_x + bound.max_x) / 2.0 + X_min, (bound.min_y + bound.max_y) / 2.0 + Y_min, (bound.min_z + bound.max_z) / 2.0);
+		header.SetScale(0.01, 0.01, 0.01);
+		header.SetPointRecordsCount(pointCloud->points.size());
+
+
+		liblas::Writer writer(ofs, header);
+		liblas::Point pt(&header);
+
+		for (int i = 0; i < pointCloud->points.size(); i++)
+		{
+			pt.SetCoordinates(double(pointCloud->points[i].x) + X_min, double(pointCloud->points[i].y) + Y_min, double(pointCloud->points[i].z));
+			pt.SetIntensity(pointCloud->points[i].intensity);
+			writer.WritePoint(pt);
+		}
+		ofs.flush();
+		ofs.close();
+	}
+
+	return 1;
+}
+
+bool DataIo::readPlyFile(const string &fileName, const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloud)
+{
+	if (pcl::io::loadPLYFile<pcl::PointXYZI>(fileName, *pointCloud) == -1) //* load the file 
+	{
+		PCL_ERROR("Couldn't read file \n");
+		return (-1);
+	}
+}
+
 
 void DataIo::outputwhat()
 {
@@ -96,11 +256,12 @@ void DataIo::outputwhat()
 
 void DataIo::readParalist(string paralistfile)
 {
+
 	ifstream infile;   //输入流
 	infile.open(paralistfile, ios::in);
-	if (!infile.is_open()) cout << "Open file failure" << endl;
+	if (!infile.is_open()) cout << "Open file failure, Use default value" << endl;
 	infile >> paralist.downsample_resolution;
-	infile >> paralist.num_point_bb;
+	infile >> paralist.keypoint_non_max;
 	infile >> paralist.feature_r;
 	infile >> paralist.keypoint_max_ratio;
 	infile >> paralist.keypoint_min_num;
@@ -108,12 +269,16 @@ void DataIo::readParalist(string paralistfile)
 	infile >> paralist.p_pre;
 	infile >> paralist.p_ED;
 	infile >> paralist.p_FD;
-	infile >> paralist.m;
+	infile >> paralist.iter_speed;
 	infile >> paralist.kmeps;
+	infile >> paralist.weight_adjustment_ratio;
+	infile >> paralist.weight_adjustment_step;
 	infile >> paralist.converge_t;
 	infile >> paralist.converge_r;
-	infile >> paralist.output;  
-	infile >> paralist.feature; //是否使用FD，使用为1，只用ED为0
+	infile >> paralist.feature;
+	infile >> paralist.correspondence_type;
+	infile >> paralist.output;
+
 }
 
 void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
@@ -225,27 +390,33 @@ void DataIo::displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, co
 
 void  DataIo::displayparameter(){
 	cout << "!--------------------------Parameter Specification---------------------------!" << endl;
-	if (paralist.feature == 0) cout << "G-ICP: Do not use feature to do the registration."<<endl;
-	if (paralist.feature == 1) cout << "GH-ICP: Use BSC feature to do the registration." << endl;
-	if (paralist.feature == 2) cout << "GH-ICP: Use FPFH feature to do the registration." << endl;
+	if (paralist.feature == 0 && paralist.correspondence_type == 1) cout << "G-ICP: Do not use feature to do the registration." << endl;
+	if (paralist.feature == 1 && paralist.correspondence_type == 1) cout << "GH-ICP: Use BSC feature to do the registration." << endl;
+	if (paralist.feature == 2 && paralist.correspondence_type == 1) cout << "GH-ICP: Use FPFH feature to do the registration." << endl;
+	if (paralist.feature == 0 && paralist.correspondence_type == 0) cout << "Classic ICP: Do not use feature to do the registration." << endl;
+	if (paralist.feature == 1 && paralist.correspondence_type == 0) cout << "H-ICP: Use BSC feature to do the registration." << endl;
+	if (paralist.feature == 2 && paralist.correspondence_type == 0) cout << "H-ICP: Use FPFH feature to do the registration." << endl;
+	
 	if (paralist.output == 0) cout << "Do not output each iteration's result." << endl;
 	if (paralist.output == 1) cout << "Output each iteration's result." << endl;
+	
 	cout << "Voxel Filtering Resolution:\t" << paralist.downsample_resolution << endl;
-	cout << "Feature Calculation radius (m):\t" << paralist.feature_r << endl;
-	cout << "Max Number of the KeyPoints in Point Cloud's Bounding Box:\t" << paralist.num_point_bb << endl;
+	cout << "Feature Calculation Radius (m):\t" << paralist.feature_r << endl;
+	//cout << "Max Number of the KeyPoints in Point Cloud's Bounding Box:\t" << paralist.num_point_bb << endl;
+	cout << "Keypoint Detection Non-max Supression Radius (m):\t" << paralist.keypoint_non_max << endl;
 	cout << "Keypoint Detection Max Curvature:\t" << paralist.keypoint_max_ratio << endl;
 	cout << "Keypoint Detection Min Basing Points:\t" << paralist.keypoint_min_num << endl;
-	cout << "Euclidean Scale:\t" << paralist.scale << endl;
+	cout << "Euclidean Distance Scale:\t" << paralist.scale << endl;
 	cout << "Penalty Parameter 1 (Initial):\t" << paralist.p_pre<< endl;
 	cout << "Penalty Parameter 2 (Euclidean Distance):\t" << paralist.p_ED << endl;
 	cout << "Penalty Parameter 3 (Feature Distance):\t" << paralist.p_FD << endl;
-	cout << "Weight Changing Rate:\t" << paralist.m << endl;
+	cout << "Weight Changing Rate:\t" << paralist.iter_speed << endl;
 	cout << "Terminal Threshold for K-M Algorithm:\t" << paralist.kmeps << endl;
+	cout << "Weight Adjustment Judgement Ratio:\t" << paralist.weight_adjustment_ratio << endl;
+	cout << "Weight Adjustment Step:\t" << paralist.weight_adjustment_step<< endl;
 	cout << "Convergence Condition for Translation (m)\t" << paralist.converge_t << endl;
 	cout << "Convergence Condition for Rotation (deg)\t" << paralist.converge_r << endl;
 	cout << "!----------------------------------------------------------------------------!" << endl;
-
-
 
 }
 /*点云分组*/

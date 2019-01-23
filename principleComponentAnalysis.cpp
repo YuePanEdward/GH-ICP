@@ -1,12 +1,12 @@
 #include "principleComponentAnalysis.h"
 
-#include <pcl\features\normal_3d_omp.h>
+#include <pcl/features/normal_3d_omp.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/segmentation/extract_clusters.h>
 
-#include <opencv2/core/types_c.h>
+#include <opencv2/core/types_c.h>  //这里要用到OpenCV的，注意啊
 #include <opencv2/core/core_c.h>
 #include <concurrent_vector.h>
 #include <ppl.h>

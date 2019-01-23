@@ -6,7 +6,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/features/fpfh.h>
-#include <pcl\PointIndices.h>
+#include <pcl/PointIndices.h>
 #include <pcl/registration/ia_ransac.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -21,9 +21,9 @@
 #include <pcl/registration/correspondence_rejection_sample_consensus.h> //随机采样一致性去除
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/approximate_voxel_grid.h>
-#include <pcl\filters\extract_indices.h>
+#include <pcl/filters/extract_indices.h>
 #include <vector>
-#include <Eigen\dense>
+#include <Eigen/dense>
 #include "utility.h"
 #include "keypointDetection.h"
 
@@ -50,16 +50,6 @@ protected:
 
 private:
 
-
-
-
 };
-
-
-
-
-
-
-
 
 #endif

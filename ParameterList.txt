@@ -1,0 +1,41 @@
+0.05
+1.5
+0.6
+0.6
+30
+1
+2.5
+1.0
+1.0
+6
+0.01
+1.1
+0.1
+0.01
+0.01
+1
+0
+0
+
+----------------------------------------------------------
+       GH-ICP Point Cloud Registration Parameters
+----------------------------------------------------------
+Notification
+1  resolution of voxel downsampling  
+2  keypoint_non_max_r                  [Key parameter]
+3  feature_r
+4  keypoint_max_ratio                  [Key parameter]
+5  keypoint_min_num
+6  scale
+7  p_pre
+8  p_ED
+9  p_FD
+10 iteration_speed
+11 km_eps
+12 weight_adjustment_ratio
+13 weight_adjustment_step
+14 converge_t
+15 converge_r
+16 Which Feature (0:No,1:BSC,2:FPFH)   [Key parameter]
+17 Which Method  (0:NN,1:KM)           [Key parameter]
+18 Output or not (0:No,1:Yes)
