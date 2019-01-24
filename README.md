@@ -36,7 +36,7 @@ If you find our work useful in your research, please consider citing:
 
 
 ### Now available on Windows.
-Compiled with Visual Studio 12 2013 Win64 Release
+Compiled with Visual Studio 12 2013 Win64 Release / Debug
 
 > PCL 1.8+ Required
 
@@ -129,9 +129,9 @@ Take the TLS (outdoor buildings) registration parameter setting as an example.
 
 > 15 converge_r  (the iterative termination condition for rotation, unit: degree. Only when these two conditions are met at the same time， the algorithm would be seemed as converged)
 
-> 16 match method (If this value is 1, KM algorithm would be adopted to calculate the correspondence. If this value is 0, traditional nearest neighbor would be used)
+> 16 [key parameter] match method (If this value is 1, KM algorithm would be adopted to calculate the correspondence. If this value is 0, traditional nearest neighbor would be used)
 
-> 17 feature option (If this value is 1, BSC[1] feature would be extracted and used for the feature distance calculation. If this value is 2, FPFH feature would be extracted and used for the feature distance calculation. If this value is 0, this algorithm would not consider the hybrid metrics and directly use Euclidean metrics instead.)
+> 17 [key parameter] feature option (If this value is 1, BSC[1] feature would be extracted and used for the feature distance calculation. If this value is 2, FPFH feature would be extracted and used for the feature distance calculation. If this value is 0, this algorithm would not consider the hybrid metrics and directly use Euclidean metrics instead.)
 
 > 18 output or not output (If this value is 1, then the point cloud of every four iterations would be output. Or there would be no output except for the last one)
 
