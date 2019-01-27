@@ -281,45 +281,45 @@ void DataIo::readParalist(string paralistfile)
 
 }
 
-void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
+void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT, string displayname)
 {
-
-
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
 	viewer->setBackgroundColor(255, 255, 255);
 	char t[256];
 	string s;
 	int n = 0;
 
-	for (size_t i = 0; i < cloudS->points.size(); ++i)
-	{
-		pcl::PointXYZ pt;
-		pt.x = cloudS->points[i].x;
-		pt.y = cloudS->points[i].y;
-		pt.z = cloudS->points[i].z;
-		sprintf(t, "%d", n);
-		s = t;
-		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
-		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
-		n++;
-
-	}
-
+	pcXYZRGBPtr pointcloudS(new pcXYZRGB());
+	pcXYZRGBPtr pointcloudT(new pcXYZRGB());
 
 	for (size_t i = 0; i < cloudT->points.size(); ++i)
 	{
-		pcl::PointXYZ pt;
+		pcl::PointXYZRGB pt;
 		pt.x = cloudT->points[i].x;
 		pt.y = cloudT->points[i].y;
 		pt.z = cloudT->points[i].z;
-		sprintf(t, "%d", n);
-		s = t;
-		viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
-		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
-		n++;
+		pt.r = 255;
+		pt.g = 215;
+		pt.b = 0;
+		pointcloudT->points.push_back(pt);
+	} // Golden
 
-	}
+	viewer->addPointCloud(pointcloudT, "pointcloudT");
 
+	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	{
+		pcl::PointXYZRGB pt;
+		pt.x = cloudS->points[i].x;
+		pt.y = cloudS->points[i].y;
+		pt.z = cloudS->points[i].z;
+		pt.r = 233;
+		pt.g = 233;
+		pt.b = 216;
+		pointcloudS->points.push_back(pt);
+	} // Silver
+
+	viewer->addPointCloud(pointcloudS, "pointcloudS");
+	
 	cout << "Click X(close) to continue..." << endl;
 	while (!viewer->wasStopped())
 	{
@@ -328,57 +328,59 @@ void DataIo::display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT)
 	}
 }
 
-void DataIo::displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, const pcXYZPtr &cloudIGSP)
+void DataIo::displaymulti(const pcXYZIPtr &cloud0, const pcXYZIPtr &cloud1, const pcXYZIPtr &cloud2, string displayname)
 {
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
 	viewer->setBackgroundColor(255, 255, 255);
 	char t[256];
 	string s;
 	int n = 0;
 
-	for (size_t i = 0; i < cloudS->points.size(); ++i)
+	pcXYZRGBPtr pointcloud0(new pcXYZRGB());
+	pcXYZRGBPtr pointcloud1(new pcXYZRGB());
+	pcXYZRGBPtr pointcloud2(new pcXYZRGB());
+
+	for (size_t i = 0; i < cloud0->points.size(); ++i)
 	{
-		pcl::PointXYZ pt;
-		pt.x = cloudS->points[i].x;
-		pt.y = cloudS->points[i].y;
-		pt.z = cloudS->points[i].z;
-		sprintf(t, "%d", n);
-		s = t;
-		viewer->addSphere(pt, 0.001, 0.0, 0.0, 1.0, s); //small scale
-		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
-		n++;
+		pcl::PointXYZRGB pt;
+		pt.x = cloud0->points[i].x;
+		pt.y = cloud0->points[i].y;
+		pt.z = cloud0->points[i].z;
+		pt.r = 255;
+		pt.g = 0;
+		pt.b = 0;
+		pointcloud0->points.push_back(pt);
+	} // Red
 
-	}
+	viewer->addPointCloud(pointcloud0, "pointcloud_reference");
 
-
-	for (size_t i = 0; i < cloudICP->points.size(); ++i)
+	for (size_t i = 0; i < cloud1->points.size(); ++i)
 	{
-		pcl::PointXYZ pt;
-		pt.x = cloudICP->points[i].x;
-		pt.y = cloudICP->points[i].y;
-		pt.z = cloudICP->points[i].z;
-		sprintf(t, "%d", n);
-		s = t;
-		viewer->addSphere(pt, 0.001, 0.0, 1.0, 0.0, s); //small scale
-		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
-		n++;
+		pcl::PointXYZRGB pt;
+		pt.x = cloud1->points[i].x;
+		pt.y = cloud1->points[i].y;
+		pt.z = cloud1->points[i].z;
+		pt.r = 0;
+		pt.g = 0;
+		pt.b = 255;
+		pointcloud1->points.push_back(pt);
+	} // Blue
 
-	}
+	viewer->addPointCloud(pointcloud1, "pointcloud_reg_method1");
 
-
-	for (size_t i = 0; i < cloudIGSP->points.size(); ++i)
+	for (size_t i = 0; i < cloud2->points.size(); ++i)
 	{
-		pcl::PointXYZ pt;
-		pt.x = cloudIGSP->points[i].x;
-		pt.y = cloudIGSP->points[i].y;
-		pt.z = cloudIGSP->points[i].z;
-		sprintf(t, "%d", n);
-		s = t;
-		viewer->addSphere(pt, 0.001, 1.0, 0.0, 0.0, s); //small scale
-		//viewer->addSphere(pt, 0.8, 0.0, 0.0, 1.0, s); //large scale
-		n++;
+		pcl::PointXYZRGB pt;
+		pt.x = cloud2->points[i].x;
+		pt.y = cloud2->points[i].y;
+		pt.z = cloud2->points[i].z;
+		pt.r = 0;
+		pt.g = 255;
+		pt.b = 0;
+		pointcloud2->points.push_back(pt);
+	} // Green
 
-	}
+	viewer->addPointCloud(pointcloud2, "pointcloud_reg_method2");
 
 	cout << "Click X(close) to continue..." << endl;
 	while (!viewer->wasStopped())

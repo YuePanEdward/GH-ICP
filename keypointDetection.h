@@ -7,12 +7,12 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/segmentation/extract_clusters.h>
 
-#include "principleComponentAnalysis.h"
+#include "PCA.h"
 #include "utility.h"
 
 #include <string.h>
 
-namespace keypoint
+namespace utility
 {
 	struct keypointOption
 	{

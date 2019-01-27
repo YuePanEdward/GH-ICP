@@ -13,10 +13,9 @@
 using namespace boost::filesystem;
 using namespace std;
 using namespace utility;
-using namespace keypoint;
 using namespace pcl;
 
-bool cmpBasedOnCurvature(CkeypointDetection::pcaFeature &a, CkeypointDetection::pcaFeature &b)
+bool cmpBasedOnCurvature(pcaFeature &a, pcaFeature &b)
 {
 	if (a.curvature>b.curvature)
 	{

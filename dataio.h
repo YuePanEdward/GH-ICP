@@ -42,7 +42,7 @@ struct Paralist{
 
 	// GH-ICP Point Cloud Registration Parameter List (Default Value) 
 	// Down sampling Parameter
-	float downsample_resolution =0.04;    //1  resolution of down sampling
+	float downsample_resolution =0.05;    //1  resolution of down sampling
 
 	// Key point Detection Parameter
 	//float num_point_bb;
@@ -64,8 +64,8 @@ struct Paralist{
 	float converge_r=0.001;               //15 rotation_iteration_terminal_condition (degree)
 	
 	// Options (GH-ICP default)
-	int feature=1;                        //16 Which Feature to use (0: No, 1: BSC, 2: FPFH)   [Key]
-	int correspondence_type=1;            //17 Which Method to use (0: NN, 1: KM)              [Key]
+	int feature=1;                        //16 Which Feature to use (0: No, 1: BSC, 2: FPFH)     [Key]
+	int correspondence_type=1;            //17 Which Method to use (0: NN, 1: KM)                [Key]
 	bool output=1;                        //18 Output or not (0: No, 1: Yes)
 
 };
@@ -94,8 +94,8 @@ public:
 	// Others
 	void outputwhat();
 
-	void display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT);
-	void displaymulti(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudICP, const pcXYZPtr &cloudIGSP);
+	void display(const pcXYZIPtr &cloudS, const pcXYZIPtr &cloudT, string displayname);
+	void displaymulti(const pcXYZIPtr &cloud0, const pcXYZIPtr &cloud1, const pcXYZIPtr &cloud2, string displayname);
 
 	// Parameter_list ÎÄ¼þ¶ÁÐ´;
 	void readParalist(string paralistfile);
