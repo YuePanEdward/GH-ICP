@@ -1,10 +1,10 @@
-#include "dataio.h"
 #include "utility.h"
 #include "keypointDetection.h"
 #include "BinaryFeatureExtraction.h"
 #include "StereoBinaryFeature.h"
 #include "KM.h"
 #include "fpfh.h"
+#include "dataio.cpp"
 #include "Registration.h"
 #include "voxelFilter.h"
 #include <pcl/filters/extract_indices.h>
@@ -19,7 +19,6 @@
 #include <pcl/registration/icp.h> 
 #include <math.h>
 
-
 using namespace std;
 using namespace keypoint;
 using namespace utility;
@@ -27,75 +26,42 @@ using namespace KMSpace;
 using namespace Reg;
 using namespace Eigen;
 
+typedef pcl::PointXYZ Point_T; 
+
 
 //By Yue Pan et al. @WHU
 //Transform source cloud into target cloud's reference system
 
-int main(/*int argc, char** argv*/)
-{
+int main(int argc, char** argv)
+{	
+	google::InitGoogleLogging("Mylog");
+	google::SetLogDestination(google::GLOG_INFO, "./logfile/MyLogInfo");
+	LOG(INFO) << "Launch the program!";
+	
+	if (argc != 5) {
+       printf("Input error, should be: binary  traget_cloud_filename  source_cloud_filename  config_filename  estiamted_overlapping_rate\n");
+       return -1;
+    }
 
-	cout << "!----------------------------------------------------------------------------!" << endl;
-	cout << "!                                  GH-ICP                                    !" << endl;
-	cout << "!          (Originally, IGSP-Iterative Global Similarity Points)             !" << endl;
-	cout << "!                               by Yue et al.                                !" << endl;
-	cout << "!----------------------------------------------------------------------------!" << endl;
-	
-	
+    string filenameT = argv[1];
+	string filenameS = argv[2];
+	string paralistfile = argv[3];
+	double estimated_IoU = atof(argv[4]);
+
+	cout << "!---------------------------GH-ICP------------------------------!" << endl;
+    
 	//timing
 	clock_t t1, t2, t3, t4, t5, t6, t7, t8, t9, ts1, ts2, ts3, ts4;
+
 	/*----------------------- 1. Data input-------------------------*/
     
-	string filenameS, filenameT, paralistfile;
-	double estimated_IoU;
-	int pc_format;
-	cout << "Input Point Cloud Format: 1.pcd , 2.las , 3.ply , 4.txt" << endl;
-	cin >> pc_format;
-	cout << "input target file" << endl;
-	cin >> filenameT;
-	cout << "input source file" << endl;
-	cin >> filenameS;
-	cout << "input paralist file" << endl;
-	cin >> paralistfile;
-	cout << "Estimated IoU (overlapping rate)" << endl;
-	cin >> estimated_IoU;
-
-	/*filenameT = argv[1];
-	filenameS = argv[2];
-	paralistfile = argv[3];
-	estimated_IoU = atof(argv[4]);
-	cout << "input target file: " << filenameT << endl;
-	cout << "input source file: " << filenameS << endl;
-	cout << "input parameter list: " << paralistfile << endl;
-	cout << "Estimated IoU (overlapping rate): " << estimated_IoU << endl;*/
-
-	pcXYZIPtr pointCloudS(new pcXYZI()), pointCloudT(new pcXYZI());
-	DataIo io;
+	DataIo<Point_T> io;
+	pcl::PointCloud<Point_T>::Ptr pointCloudT(new pcl::PointCloud<Point_T>()), pointCloudS(new pcl::PointCloud<Point_T>());
+	
 	t1 = clock();
-	
-	double S_las_origin_X, S_las_origin_Y, T_las_origin_X, T_las_origin_Y;
-	switch (pc_format)
-	{
-	case 1:
-		io.readPcdFile(filenameS, pointCloudS);
-		io.readPcdFile(filenameT, pointCloudT);
-		break;
-	case 2:
-		io.readLasFile(filenameS, pointCloudS);
-		io.readLasFile(filenameT, pointCloudT);
-		break;
-	case 3:
-		io.readPlyFile(filenameS, pointCloudS);
-		io.readPlyFile(filenameT, pointCloudT);
-		break;
-	case 4:
-		break;
-	default:
-		cout << "Undefined Point Cloud Format." << endl;
-		return 0;
-		break;
-	}
-	
-	//pcl::copyPointCloud(*pointclouds, *pointCloudS); //from XYZI to XYZ
+	io.readCloudFile(filenameT,pointCloudT);
+	io.readCloudFile(filenameS,pointCloudS);
+
 	cout << "Data loaded" << endl;
 	cout << "Raw point number: [ S:  " << pointCloudS->size() << "  , T:  " << pointCloudT->size()<<" ]"<<endl;
 	io.readParalist(paralistfile);
@@ -306,7 +272,7 @@ int main(/*int argc, char** argv*/)
 		//if (Reg.RMS > 10000)
 		//{
 			//Reg.findcorrespondenceKM();
-		//}//Use Kuhn¨CMunkres algorithm(KM) or MCMF
+		//}//Use Kuhnï¿½CMunkres algorithm(KM) or MCMF
 		//else Reg.findcorrespondenceNN();
 		
 		if (io.paralist.correspondence_type == 0) Reg.findcorrespondenceNN();

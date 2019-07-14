@@ -25,9 +25,9 @@
 #include "utility.h"
 
 
-//ºê¿ØÖÆ
-#define SHOW_PROCESS	//ÊÇ·ñÏÔÊ¾µ±Ç°ÌáÈ¡½ø¶È
-//#define DISTANCE_WEIGHT	//ÊÇ·ñ½øÐÐ¾àÀë¼ÓÈ¨
+//ï¿½ï¿½ï¿½ï¿½ï¿½
+#define SHOW_PROCESS	//ï¿½Ç·ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½Ç°ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
+//#define DISTANCE_WEIGHT	//ï¿½Ç·ï¿½ï¿½ï¿½Ð¾ï¿½ï¿½ï¿½ï¿½È¨
 
 using namespace std;
 
@@ -36,22 +36,22 @@ class StereoBinaryFeatureExtractor:public StereoBinaryFeature
 {
 public:
 	/************************************************************************/
-	/*               Ä¿Ç°ËùÓÃµÄÊ¹ÓÃÁ¢Ìå¸ñÍø£¬¶þÖµ»¯Îª0,1µÄÌØÕ÷                 */
+	/*               Ä¿Ç°ï¿½ï¿½ï¿½Ãµï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½Îª0,1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½                 */
 	/************************************************************************/
-	float extract_radius_;				//¼ÆËãÌØÕ÷µÄ°ë¾¶´óÐ¡
-	unsigned int voxel_side_num_;		//¼ÆËãÌØÕ÷µÄ¸ñÍø¸öÊý voxel_side_num_=N Ôò¸ñÍø¹²ÓÐN*N*N
-	float unit_side_length_;			//Ã¿¸ö¸ñ×ÓµÄ¸ñÍø±ß³¤
-	vector<float> side_length_thresh_;	//´æ´¢±ßµÄÁÙ½çÖµ
+	float extract_radius_;				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä°ë¾¶ï¿½ï¿½Ð¡
+	unsigned int voxel_side_num_;		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ voxel_side_num_=N ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½N*N*N
+	float unit_side_length_;			//Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ÓµÄ¸ï¿½ï¿½ï¿½ï¿½ß³ï¿½
+	vector<float> side_length_thresh_;	//ï¿½æ´¢ï¿½ßµï¿½ï¿½Ù½ï¿½Öµ
 
 
 	int gridFeatureDimension_;
-	int compairFeatureDimensionInEachPlane_;//Ã¿Ò»¸öÍ¶Ó°ÃæÉÏ±È½ÏÌØÕ÷µÄÎ¬Êý;
+	int compairFeatureDimensionInEachPlane_;//Ã¿Ò»ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½Ï±È½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½;
 	int compairFeatureDimension_;
 
-	///////////////////////////Ëæ»ú¸ñÍø¶ÔµÄ´æ´¢//////////////////////////
+	///////////////////////////ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔµÄ´æ´¢//////////////////////////
 	vector<pair<int, int>> grid_index_pairs_2d_;
 	
-	/*´æ´¢Ïà¹ØÐÅÏ¢µÄ¸ñÍø*/
+	/*ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½Ä¸ï¿½ï¿½ï¿½*/
 	struct GridVoxel
 	{
 		double point_num;
@@ -67,9 +67,9 @@ public:
 		}
 	};
 
-	/*¹¹Ôìº¯Êý*/
-	StereoBinaryFeatureExtractor(float extract_radius,			//ÌØÕ÷ÌáÈ¡°ë¾¶
-								 unsigned int voxel_side_num,   //»®·Ö¸ñ×ÓÊýÄ¿ »®·ÖÊýÄ¿×îºÃÎªÆæÊý£¬±ÜÃâ±ßÔµÐ§Ó¦
+	/*ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½*/
+	StereoBinaryFeatureExtractor(float extract_radius,			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ë¾¶
+								 unsigned int voxel_side_num,   //ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔµÐ§Ó¦
 								 bool build_sample_pattern = false
 								 ):	extract_radius_(extract_radius),voxel_side_num_(voxel_side_num)
 	{
@@ -79,11 +79,11 @@ public:
 		compairFeatureDimension_ = 6 * compairFeatureDimensionInEachPlane_;
 		
 
-		//¼ÆËãµ¥Î»±ß³¤
+		//ï¿½ï¿½ï¿½ãµ¥Î»ï¿½ß³ï¿½
 		unit_side_length_=2*extract_radius_/voxel_side_num_;
 
 		
-		//¼ÆËãÁÙ½çÖµ
+		//ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½Öµ
 		side_length_thresh_.resize(voxel_side_num_);
 		for(int i=0;i<voxel_side_num_;i++)
 		{
@@ -92,7 +92,7 @@ public:
 
 		if (build_sample_pattern)
 		{
-			//±È½Ïµã¶Ô;
+			//ï¿½È½Ïµï¿½ï¿½;
 			for (int i = 0; i < compairFeatureDimensionInEachPlane_; i++)
 			{
 				int pair1, pair2;
@@ -106,7 +106,7 @@ public:
 			}
 
 			ofstream fout("sample_pattern.txt");
-			cout << "Ëæ»ú²ÉÑùµã¶Ô---------------------------------" << endl;
+			cout << "ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½---------------------------------" << endl;
 			for (int i = 0; i < grid_index_pairs_2d_.size(); i++)
 			{
 				fout << grid_index_pairs_2d_[i].first << " " << grid_index_pairs_2d_[i].second << endl;
@@ -131,44 +131,44 @@ public:
 
 	
 
-	/*½¨Á¢Ã¿¸ö¹Ø¼üµãµÄ¾Ö²¿×ø±êÏµ£¨Ö÷·½ÏòÎªZÖáÕýÏò,µÚ¶þÖ÷·½ÏòÎªXÖáÕýÏò£©,²¢½«±ä»»µ½¸Ã¾Ö²¿×ø±êÏµÏÂµÄµãÑ¹Èëresult_cloudÖÐ;*/
-	bool computeLocalCoordinateSystem(const pcXYZIPtr & input_cloud,//ÊäÈëµãÔÆ
-								      int test_index,    //¹Ø¼üµãµÄË÷ÒýºÅ
-									  const vector<int> & search_indices, //¹Ø¼üµãµÄÁÚÓòµãË÷ÒýºÅ
-								      CoordinateSystem &localCoordinateSystem);	//¾Ö²¿×ø±êÏµµÄ·½Ïò;
+	/*ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½Ä¾Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªZï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ú¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªXï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ä»»ï¿½ï¿½ï¿½Ã¾Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ÂµÄµï¿½Ñ¹ï¿½ï¿½result_cloudï¿½ï¿½;*/
+	bool computeLocalCoordinateSystem(const pcXYZIPtr & input_cloud,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+								      int test_index,    //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+									  const vector<int> & search_indices, //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+								      CoordinateSystem &localCoordinateSystem);	//ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Ä·ï¿½ï¿½ï¿½;
 
-	void transformPointCloudToLocalSystem(const pcXYZIPtr & input_cloud,//ÊäÈëµãÔÆ
-								      int test_index,    //¹Ø¼üµãµÄË÷ÒýºÅ
-									  const vector<int> & search_indices, //¹Ø¼üµãµÄÁÚÓòµãË÷ÒýºÅ  
+	void transformPointCloudToLocalSystem(const pcXYZIPtr & input_cloud,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+								      int test_index,    //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+									  const vector<int> & search_indices, //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
 									  const CoordinateSystem &localCoordinateSystem,
-									  pcXYZIPtr & result_cloud);//Êä³öµÄÒÑ¾­»ñµÃÐý×ª²»±äÐÔµÄµãÔÆ;
+									  pcXYZIPtr & result_cloud);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ÔµÄµï¿½ï¿½ï¿½;
 	
-	/*°´ÕÕµãÃÜ¶È¼ÆËãµÄµã´óÐ¡À´Éú³ÉÁ¢Ìå¸ñÍø*/
-	void constructCubicGrid(const pcXYZIPtr & rotated_cloud,		//ÓÉÐý×ª²»±äÐÎ¼ÆËãµÃµ½µÄ¾Ö²¿µãÔÆ
-						    vector<GridVoxel> & grid);									//½á¹û¸ñÍø
+	/*ï¿½ï¿½ï¿½Õµï¿½ï¿½Ü¶È¼ï¿½ï¿½ï¿½Äµï¿½ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
+	void constructCubicGrid(const pcXYZIPtr & rotated_cloud,		//ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½Ãµï¿½ï¿½Ä¾Ö²ï¿½ï¿½ï¿½ï¿½ï¿½
+						    vector<GridVoxel> & grid);									//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
-	//¸ù¾ÝÁ¢Ìå¸ñÍø¼ÆËãÈý¸öÍ¶Ó°ÃæµÄÍ¶Ó°ÌØÕ÷;
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½;
 	StereoBinaryFeature  computeFeatureProjectedGrid(const vector<GridVoxel> & grid);
 
-	//¸ù¾ÝÁ¢Ìå¸ñÍø¼ÆËãÈý¸öÍ¶Ó°ÃæµÄÍ¶Ó°ÌØÕ÷ºÍÁ½Á½±È½ÏµÄÌØÕ÷;
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È½Ïµï¿½ï¿½ï¿½ï¿½ï¿½;
 	StereoBinaryFeature  computeFeatureProjectedGridAndCompareFeature(const vector<GridVoxel> & grid);
 
-	//¸ù¾ÝÁ¢Ìå¸ñÍø¼ÆËãÈý¸öÍ¶Ó°ÃæµÄÍ¶Ó°ÌØÕ÷ºÍÁ½Á½±È½ÏµÄÌØÕ÷(Ã¿¸öÍ¶Ó°Ãæ·Ö±ð±È½Ï);
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È½Ïµï¿½ï¿½ï¿½ï¿½ï¿½(Ã¿ï¿½ï¿½Í¶Ó°ï¿½ï¿½Ö±ï¿½È½ï¿½);
 	StereoBinaryFeature  computeFeatureProjectedGridAndCompareFeature2D(const vector<GridVoxel> & grid);
 
-	/*½«Éú³ÉµÄ¸ñÍø¶þÖµ»¯×÷ÎªÌØÕ÷·µ»Ø*/
-	StereoBinaryFeature computeFeatureBinarizeGrid(const vector<GridVoxel> & grid);	//ÊäÈë¸ñÍø,Êä³ö¶þ½øÖÆÌØÕ÷;
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ÉµÄ¸ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
+	StereoBinaryFeature computeFeatureBinarizeGrid(const vector<GridVoxel> & grid);	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
 
-	//¶þÎ¬¸ñÍøµÄËæ»ú²ÉÑù;
+	//ï¿½ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
 	void randomSamplePointPairs();
 
-	/*ÌáÈ¡ÌØÕ÷º¯Êý,ÌáÈ¡Ê§°ÜÔò·µ»ØµÄvectorÎª¿Õ*/
-	void extractBinaryFeatures(const pcXYZIPtr & input_cloud,	//ÊäÈëµÄµãÔÆ
+	/*ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½È¡Ê§ï¿½ï¿½ï¿½ò·µ»Øµï¿½vectorÎªï¿½ï¿½*/
+	void extractBinaryFeatures(const pcXYZIPtr & input_cloud,	//ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½
 		                       const pcl::PointIndicesPtr &indices,
 		                       doubleVectorSBF & features);
 
-	bool extractBinaryFeatureOfKeypoint(const pcXYZIPtr & input_cloud,	//ÊäÈëµÄµãÔÆ
+	bool extractBinaryFeatureOfKeypoint(const pcXYZIPtr & input_cloud,	//ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½
 		                                size_t ptIndex, const std::vector<int> &searchIndexes,
 										vectorSBF & feature);
   
@@ -185,7 +185,7 @@ private:
 	}
 
 	/*
-	µÃµ½µÚx,y,z¸ö¸ñ×ÓµÄË÷ÒýÖµ ´Ó0¿ªÊ¼
+	ï¿½Ãµï¿½ï¿½ï¿½x,y,zï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ï¿½ï¿½ï¿½ï¿½Öµ ï¿½ï¿½0ï¿½ï¿½Ê¼
 	*/
 	inline int getVoxelIndex(int x, int y, int z)
 	{
@@ -214,27 +214,27 @@ private:
 		
 	}
 
-	//ÀûÓÃ2DµÄpca¼ÆËã¾Ö²¿ÁÚÓò·Ö²¼µÄÌØÕ÷ÏòÁ¿;
-	void computeEigenVectorsBy2Dpca(const pcXYZIPtr & input_cloud,//ÊäÈëµãÔÆ
-		                            const vector<int> & search_indices, //¹Ø¼üµãµÄÁÚÓòµãË÷ÒýºÅ
+	//ï¿½ï¿½ï¿½ï¿½2Dï¿½ï¿½pcaï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+	void computeEigenVectorsBy2Dpca(const pcXYZIPtr & input_cloud,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		                            const vector<int> & search_indices, //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 									int test_index,
 								    Eigen::Vector3f  &principalDirection);
 
-	bool computeEigenVectorsByWeightPCA(const pcXYZIPtr & input_cloud,//ÊäÈëµãÔÆ
-		                                const vector<int> & search_indices, //¹Ø¼üµãµÄÁÚÓòµãË÷ÒýºÅ
+	bool computeEigenVectorsByWeightPCA(const pcXYZIPtr & input_cloud,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		                                const vector<int> & search_indices, //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 								        int test_index,
 								        Eigen::Vector3f  &principalDirection,
 								        Eigen::Vector3f  &middleDirection,
 								        Eigen::Vector3f  &normalDirection);
 
-	bool computeEigenVectorsByPCA(const pcXYZIPtr & input_cloud,//ÊäÈëµãÔÆ
-								const vector<int> & search_indices, //¹Ø¼üµãµÄÁÚÓòµãË÷ÒýºÅ
+	bool computeEigenVectorsByPCA(const pcXYZIPtr & input_cloud,//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+								const vector<int> & search_indices, //ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 								int test_index,
 								Eigen::Vector3f  &principalDirection,
 								Eigen::Vector3f  &middleDirection,
 								Eigen::Vector3f  &normalDirection);
 
-	//¼ÆËã¾Ö²¿×ø±êÏµºÍ³¡¾°×ø±êÏµµÄÐý×ª¾ØÕó;
+	//ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½Í³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½;
 	void computeTranformationMatrixBetweenCoordinateSystems(const CoordinateSystem & coordinate_src,
 		                                                    const CoordinateSystem & coordinate_traget,
 															Eigen::Matrix4f  & tragetToSource);
@@ -257,7 +257,7 @@ private:
 	}
 
 
-	//¼ÆËãÁ½¸öµãÖ®¼äµÄ3Î¬¿Õ¼ä¾àÀë;
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½3Î¬ï¿½Õ¼ï¿½ï¿½ï¿½ï¿½;
 	float Comput3DDistanceBetweenPoints(const pcl::PointXYZI &pt1, const pcl::PointXYZI &pt2)
 	{
 		float dertax, dertay, dertaz, dis;

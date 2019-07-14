@@ -7,81 +7,131 @@
 #ifndef PCA_H
 #define PCA_H
 
-#include <vector>
-
+//pcl
 #include <pcl/features/normal_3d_omp.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/segmentation/extract_clusters.h>
-
+//opencv2
 #include <opencv2/core/types_c.h>   
 #include <opencv2/core/core_c.h>
 
-#include <concurrent_vector.h>
-#include <ppl.h>
+#include <vector>
+//#include <concurrent_vector>
+//#include <ppl>
 
 using namespace  std;
 
 namespace utility
 {
-	struct eigenValue  // ÌØÕ÷Öµ ÆäÖÐ,lamada1 > lamada2 > lamada3;
+	struct eigenValue  // ï¿½ï¿½ï¿½ï¿½Öµ ï¿½ï¿½ï¿½ï¿½,lamada1 > lamada2 > lamada3;
 	{
 		double lamada1;
 		double lamada2;
 		double lamada3;
 	};
 
-	struct eigenVector  //ÌØÕ÷ÏòÁ¿ ·Ö±ð¶ÔÓ¦ÌØÕ÷Öµ;
+	struct eigenVector  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Öµ;
 	{
 		Eigen::Vector3f principalDirection;
 		Eigen::Vector3f middleDirection;
 		Eigen::Vector3f normalDirection;
 	};
 
-	struct pcaFeature  //PCA ÌØÕ÷;
+	struct pcaFeature  //PCA ï¿½ï¿½ï¿½ï¿½;
 	{
-		eigenValue values;  //ÌØÕ÷Öµ;
-		eigenVector vectors;//ÌØÕ÷ÏòÁ¿;
-		double curvature;   //ÇúÂÊ;
-		double linear;      //Ïß×´ÐÔ;
-		double planar;      //Ãæ×´ÐÔ;
-		double spherical;   //Çò×´ÐÔ;
-		pcl::PointXYZI pt;  //ÖÐÐÄµã;
-		size_t ptId;        //ÖÐÐÄµãºÅ;
-		size_t ptNum;       //ÁÚÓòµãÊý;
+		eigenValue values;  //ï¿½ï¿½ï¿½ï¿½Öµ;
+		eigenVector vectors;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+		double curvature;   //ï¿½ï¿½ï¿½ï¿½;
+		double linear;      //ï¿½ï¿½×´ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½];
+		double planar;      //ï¿½ï¿½×´ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½];
+		double spherical;   //ï¿½ï¿½×´ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½];
+		double linear_2;    //ï¿½ï¿½×´ï¿½ï¿½[ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½];
+		double planar_2;    //ï¿½ï¿½×´ï¿½ï¿½[ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½];
+		double spherical_2; //ï¿½ï¿½×´ï¿½ï¿½[ï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½];
+		pcl::PointXYZI pt;  //ï¿½ï¿½ï¿½Äµï¿½;
+		size_t ptId;        //ï¿½ï¿½ï¿½Äµï¿½ï¿½;
+		size_t ptNum;       //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
 	};
 
+	template<typename PointT>
 	class PrincipleComponentAnalysis
 	{
-
 	public:
-
+		
 		/**
 		* \brief Estimate the normals of the input Point Cloud by PCL speeding up with OpenMP
-		* \param[in] inputPointCloud is the input Point Cloud (XYZI) Pointer
+		* \param[in] inputPointCloud is the input Point Cloud Pointer
 		* \param[in] radius is the neighborhood search radius (m) for KD Tree
 		* \param[out] normals is the normal of all the points from the Point Cloud
 		*/
-		bool PrincipleComponentAnalysis::CalculateNormalVectorOpenMP(pcl::PointCloud<pcl::PointXYZI>::Ptr inputPointCloud,
+		bool CalculateNormalVector_Radius(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
 			float radius,
 			pcl::PointCloud<pcl::Normal>::Ptr &normals)
 		{
 			// Create the normal estimation class, and pass the input dataset to it;
-			pcl::NormalEstimationOMP<pcl::PointXYZI, pcl::Normal> ne;
+			pcl::NormalEstimationOMP<PointT, pcl::Normal> ne;
 			ne.setInputCloud(inputPointCloud);
 			// Create an empty kd-tree representation, and pass it to the normal estimation object;
-			pcl::search::KdTree<pcl::PointXYZI>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZI>());
+			typename pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>());
 			ne.setSearchMethod(tree);
 			// Use all neighbors in a sphere of radius;
 			ne.setRadiusSearch(radius);
 			// Compute the normal
 			ne.compute(*normals);
-
 			CheckNormals(normals);
-
 			return true;
 		}
+
+		bool CalculatePointCloudWithNormal_Radius(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
+			float radius,
+			pcl::PointCloud<pcl::PointNormal>::Ptr &pointnormals)
+		{
+			pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+			bool normal_ready = CalculateNormalVector_Radius(inputPointCloud, radius, normals);
+			if (normal_ready)
+			{
+				// Concatenate the XYZ and normal fields*  
+				pcl::concatenateFields(*inputPointCloud, *normals, *pointnormals);
+				return true;
+			}
+			else return false;
+		}
+
+		bool CalculateNormalVector_KNN(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
+			int K,
+			pcl::PointCloud<pcl::Normal>::Ptr &normals)
+		{
+			// Create the normal estimation class, and pass the input dataset to it;
+			pcl::NormalEstimationOMP<PointT, pcl::Normal> ne;
+			ne.setInputCloud(inputPointCloud);
+			// Create an empty kd-tree representation, and pass it to the normal estimation object;
+			typename pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>());
+			ne.setSearchMethod(tree);
+			// Use all neighbors in a sphere of radius;
+			ne.setKSearch(K);
+			// Compute the normal
+			ne.compute(*normals);
+			CheckNormals(normals);
+			return true;
+		}
+
+		bool CalculatePointCloudWithNormal_KNN(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
+			int K,
+			pcl::PointCloud<pcl::PointNormal>::Ptr &pointnormals)
+		{
+			pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>());
+			bool normal_ready = CalculateNormalVector_KNN(inputPointCloud, K, normals);
+			if (normal_ready)
+			{
+				// Concatenate the XYZ and normal fields*  
+				pcl::concatenateFields(*inputPointCloud, *normals, *pointnormals);
+				return true;
+			}
+			else return false;
+		}
+
 
 		/**
 		* \brief Principle Component Analysis (PCA) of the Point Cloud with fixed search radius
@@ -89,28 +139,31 @@ namespace utility
 		* \param[in]     radius is the neighborhood search radius (m) for KD Tree
 		* \param[out]features is the pcaFeature vector of all the points from the Point Cloud
 		*/
-		bool PrincipleComponentAnalysis::CalculatePcaFeaturesOfPointCloud(pcl::PointCloud<pcl::PointXYZI>::Ptr inputPointCloud,
+		bool CalculatePcaFeaturesOfPointCloud(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
 			float radius,
 			std::vector<pcaFeature> &features)
 		{
-			pcl::KdTreeFLANN<pcl::PointXYZI> tree; //KD TreeË÷Òý¶ÔÏó;
-			tree.setInputCloud(inputPointCloud);   //½¨KD Tree;
+			pcl::KdTreeFLANN<PointT> tree; //KD Treeï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+			tree.setInputCloud(inputPointCloud);   //ï¿½ï¿½KD Tree;
 			features.resize(inputPointCloud->size());
 
-			concurrency::parallel_for(size_t(0), inputPointCloud->points.size(), [&](size_t i)   //²¢ÐÐ´¦ÀíµãÔÆËùÓÐµã;
+			//concurrency::parallel_for(size_t(0), inputPointCloud->points.size(), [&](size_t i)   //ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½;
+			//{
+			for (int i=0;i<inputPointCloud->points.size();i++)
 			{
-				//ÁÚÓòËÑË÷ËùÓÃ±äÁ¿;
-				vector<int> search_indices; //Vector ÁÚÓòµãÐòºÅ;
-				vector<float> distances;    //Vector ÁÚÓòµãµ½ËÑË÷µãµÄ¾àÀë;
+				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½ï¿½ï¿½;
+				vector<int> search_indices; //Vector ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+				vector<float> distances;    //Vector ï¿½ï¿½ï¿½ï¿½ãµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½ï¿½;
 				vector<int>().swap(search_indices);
 				vector<float>().swap(distances);
 
-				tree.radiusSearch(i, radius, search_indices, distances);  //KD tree Ö¸¶¨°ë¾¶ËÑË÷;
-				features[i].pt = inputPointCloud->points[i];//ËÑË÷µã;
-				features[i].ptId = i;                       //ËÑË÷µãÐòºÅ;
-				features[i].ptNum = search_indices.size();  //ËÑË÷µãµÄÁÚÓòµãÊý;
-				CalculatePcaFeature(inputPointCloud, search_indices, features[i]); //¶ÔËÑË÷µã×öPCA;
-			});
+				tree.radiusSearch(i, radius, search_indices, distances);  //KD tree Ö¸ï¿½ï¿½ï¿½ë¾¶ï¿½ï¿½ï¿½ï¿½;
+				features[i].pt = inputPointCloud->points[i];//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+				features[i].ptId = i;                       //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+				features[i].ptNum = search_indices.size();  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½;
+				CalculatePcaFeature(inputPointCloud, search_indices, features[i]); //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½PCA;
+			}
+			//});
 
 			return true;
 		}
@@ -123,7 +176,7 @@ namespace utility
 		* \param[in] search_indices is the neighborhood points' indices of the search point.
 		* \param[out]feature is the pcaFeature of the search point.
 		*/
-		bool PrincipleComponentAnalysis::CalculatePcaFeature(pcl::PointCloud<pcl::PointXYZI>::Ptr inputPointCloud,
+		bool CalculatePcaFeature(typename pcl::PointCloud<PointT>::Ptr inputPointCloud,
 			std::vector<int> &search_indices,
 			pcaFeature &feature)
 		{
@@ -169,14 +222,16 @@ namespace utility
 			}
 			else
 			{
-				feature.curvature = feature.values.lamada3 / (feature.values.lamada1 + feature.values.lamada2 + feature.values.lamada3);
+				feature.curvature = feature.values.lamada3 / (feature.values.lamada1 + feature.values.lamada2 + feature.values.lamada3);   //ï¿½ï¿½ï¿½Êµï¿½ï¿½ã·¨ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½ eigen value ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ eigen value Ö®ï¿½ï¿½;
 
 			}
 
 			feature.linear = (sqrt(feature.values.lamada1) - sqrt(feature.values.lamada2)) / sqrt(feature.values.lamada1);
 			feature.planar = (sqrt(feature.values.lamada2) - sqrt(feature.values.lamada3)) / sqrt(feature.values.lamada1);
 			feature.spherical = sqrt(feature.values.lamada3) / sqrt(feature.values.lamada1);
-
+			feature.linear_2 = ((feature.values.lamada1) - (feature.values.lamada2)) / (feature.values.lamada1);
+			feature.planar_2 = ((feature.values.lamada2) - (feature.values.lamada3)) / (feature.values.lamada1);
+			feature.spherical_2 = (feature.values.lamada3) / (feature.values.lamada1);
 			cvReleaseMat(&pEigVecs);
 			cvReleaseMat(&pEigVals);
 			cvReleaseMat(&pMean);
@@ -186,14 +241,13 @@ namespace utility
 
 	protected:
 
-
 	private:
-
+		
 		/**
 		* \brief Check the Normals (if they are finite)
 		* \param  normals is the input Point Cloud (XYZI)'s Normal Pointer
 		*/
-		void PrincipleComponentAnalysis::CheckNormals(pcl::PointCloud<pcl::Normal>::Ptr &normals)
+		void CheckNormals(pcl::PointCloud<pcl::Normal>::Ptr &normals)
 		{
 			//It is advisable to check the normals before the call to compute()
 			for (int i = 0; i < normals->points.size(); i++)
@@ -206,16 +260,17 @@ namespace utility
 					normals->points[i].curvature = 0.0;
 				}
 
-				if (_isnan(normals->points[i].curvature))
-				{
-					normals->points[i].normal_x = 0.577;
-					normals->points[i].normal_y = 0.577;
-					normals->points[i].normal_z = 0.577;
-					normals->points[i].curvature = 0.0;
-				}
+				// if (_isnan(normals->points[i].curvature))
+				// {
+				// 	normals->points[i].normal_x = 0.577;
+				// 	normals->points[i].normal_y = 0.577;
+				// 	normals->points[i].normal_z = 0.577;
+				// 	normals->points[i].curvature = 0.0;
+				// }
 			}
 		}
 	};
+
 }
 #endif //PCA_H
 
