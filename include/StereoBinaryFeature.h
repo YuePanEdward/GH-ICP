@@ -9,11 +9,11 @@
 #include <string>
 #include <sstream>
 
-#include <pcl\kdtree\kdtree_flann.h>
-#include <pcl\point_cloud.h>
-#include <pcl\point_types.h>
-#include <pcl\common\distances.h>
-#include <boost\shared_array.hpp>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/common/distances.h>
+#include <boost/shared_array.hpp>
 
 #include <Eigen/Eigen>
 
@@ -23,8 +23,8 @@ class StereoBinaryFeature
 {
 public:
 	char * feature_;
-	unsigned int size_;	//±íÊ¾bitÊıÄ¿;
-	unsigned int byte_;	//±íÊ¾×Ö½ÚÊıÄ¿;
+	unsigned int size_;	//ï¿½ï¿½Ê¾bitï¿½ï¿½Ä¿;
+	unsigned int byte_;	//ï¿½ï¿½Ê¾ï¿½Ö½ï¿½ï¿½ï¿½Ä¿;
 	
 	int bscVisualWordsIndex_;
 
@@ -39,9 +39,9 @@ public:
 		Eigen::Vector3f  zAxis;
 		Eigen::Vector3f  origin;
 	};
-	CoordinateSystem localSystem_;//¾Ö²¿×ø±êÏµ;
+	CoordinateSystem localSystem_;//ï¿½Ö²ï¿½ï¿½ï¿½ï¿½ï¿½Ïµ;
 
-	//¹¹Ôìº¯Êı;
+	//ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½;
 	StereoBinaryFeature(unsigned int size = 0) :size_(size), byte_(0)
 	{
 		if (size != 0)
@@ -75,7 +75,7 @@ public:
 			feature_ = nullptr;
 	}
 
-	//Îö¹¹º¯Êı
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	~StereoBinaryFeature()
 	{
 		if (feature_ != nullptr)
@@ -84,7 +84,7 @@ public:
 		}
 	}
 
-	//¸³Öµ¹¹Ôìº¯Êı
+	//ï¿½ï¿½Öµï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
 	StereoBinaryFeature & operator=(const StereoBinaryFeature & sbf)
 	{
 		this->size_ = sbf.size_;
@@ -103,7 +103,7 @@ public:
 		return *this;
 	}
 
-	//¸´ÖÆ¹¹Ôìº¯Êı
+	//ï¿½ï¿½ï¿½Æ¹ï¿½ï¿½ìº¯ï¿½ï¿½
 	StereoBinaryFeature(const StereoBinaryFeature& sbf)
 	{
 		this->size_ = sbf.size_;
@@ -123,7 +123,7 @@ public:
 	}
 
 
-	//µÃµ½nÎ»bitÉÏµÄÖµÎª1»ò0     ²»½øĞĞÏÂ±êÊıÁ¿¼ìÑé
+	//ï¿½Ãµï¿½nÎ»bitï¿½Ïµï¿½ÖµÎª1ï¿½ï¿½0     ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	bool getNthBitValue(int n)
 	{
 		int bit_num = n % 8;
@@ -132,7 +132,7 @@ public:
 		return (feature_[byte_num] & test_num) != 0;
 	}
 
-	//ÉèÖÃnÎ»bitÉÏµÄÖµÎª1	²»½øĞĞÏÂ±êÊıÁ¿¼ìÑé
+	//ï¿½ï¿½ï¿½ï¿½nÎ»bitï¿½Ïµï¿½ÖµÎª1	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void setNthBitValue(int n)
 	{
 		int bit_num = n % 8;
@@ -141,32 +141,32 @@ public:
 		feature_[byte_num] |= test_num;
 	}
 
-	//ÖØÔØÏàµÈÅĞ¶¨;
+	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¶ï¿½;
 	bool operator==(const StereoBinaryFeature & sbf) const
 	{
-		//´óĞ¡²»ÏàµÈÔò·µ»Øfalse
+		//ï¿½ï¿½Ğ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ò·µ»ï¿½false
 		if (sbf.size_ != size_)
 			return false;
-		//ÈÎÒâÒ»¸öbitÉÏ²»Í¬Ôò·µ»Øfalse
+		//ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½bitï¿½Ï²ï¿½Í¬ï¿½ò·µ»ï¿½false
 		for (int i = 0; i<byte_; i++)
 		{
-			//Òì»ò´óÓÚ0Ôò±íÊ¾´æÔÚbit²»Í¬
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½bitï¿½ï¿½Í¬
 			if ((feature_[i] ^ sbf.feature_[i])>0)
 				return false;
 		}
 		return true;
 	}
 
-	//Êä³öshared_array ×ª»»ÎªcharµÄÊı×é
+	//ï¿½ï¿½ï¿½shared_array ×ªï¿½ï¿½Îªcharï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	boost::shared_array<unsigned char> make_shared();
 
-	/*¼ÆËãÁ½¸ö¶ş½øÖÆÌØÕ÷Ö®¼äµÄhammingDistance·µ»ØÖµÎª-1Ê±±íÊ¾Á½¸öÌØÕ÷´óĞ¡²»Ò»ÖÂÎŞ·¨¼ÆËã*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½ï¿½hammingDistanceï¿½ï¿½ï¿½ï¿½ÖµÎª-1Ê±ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¡ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ş·ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	int hammingDistance(const StereoBinaryFeature & sbf1, const StereoBinaryFeature & sbf2);
 
-	/*¶ş½øÖÆĞÎÊ½¶ÁÈëÌØÕ÷*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	void readFeatures(vector<StereoBinaryFeature>& features, const string& path);
 
-	/*¶ş½øÖÆĞÎÊ½Êä³öÌØÕ÷*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	void writeFeatures(const vector<StereoBinaryFeature>& features, const string& path);
 	
 

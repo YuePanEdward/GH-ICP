@@ -1,9 +1,9 @@
 #ifndef RG
 #define RG
 
-#include<pcl/point_cloud.h>
-#include<pcl/point_types.h>
-#include <Eigen/dense>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <Eigen/Dense>
 #include <vector>
 #include "utility.h"
 #include "KM.h"

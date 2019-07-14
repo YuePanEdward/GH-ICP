@@ -1,7 +1,7 @@
 #ifndef KM
 #define KM
 
-#include <Eigen/dense>
+#include <Eigen/Dense>
 #include <vector>
 #include "utility.h"
 
@@ -10,8 +10,8 @@ using namespace std;
 
 namespace KMSpace{
 	
-	struct Graph{  //¶þ·ÖÍ¼½á¹¹Ìå;
-		vector<vector<double>> GTable; //ÁÚ½Ó¾ØÕó 
+	struct Graph{  //ï¿½ï¿½ï¿½ï¿½Í¼ï¿½á¹¹ï¿½ï¿½;
+		vector<vector<double>> GTable; //ï¿½Ú½Ó¾ï¿½ï¿½ï¿½ 
 		int n;
 		int sp;
 		int tp;
@@ -32,20 +32,20 @@ namespace KMSpace{
 	public:
 		// KM algorithm
 
-		/*¹¹Ôìº¯Êý£ºÊäÈë Graph [·½Õó]£¬KM_epsãÐÖµ ÒÔ¼°ÎóÆ¥ÅäãÐÖµ£¨¿ÉÊ¡£©;*/
+		/*ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Graph [ï¿½ï¿½ï¿½ï¿½]ï¿½ï¿½KM_epsï¿½ï¿½Öµ ï¿½Ô¼ï¿½ï¿½ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ê¡ï¿½ï¿½;*/
 		Km(Graph graph, double eps0,double penalty0){
 			gra = graph;
 			eps = eps0;
 			penalty = penalty0;
 		}
 
-		/*KM Ö÷º¯Êý£¨¶þ·ÖÍ¼×îÐ¡È¨Æ¥Åä);*/
+		/*KM ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½Ð¡È¨Æ¥ï¿½ï¿½);*/
 		void kmsolve();
-		/*KMÆ¥ÅäÄÜÁ¿£¬ËùÑ¡È¨Ö®ºÍ;*/
+		/*KMÆ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡È¨Ö®ï¿½ï¿½;*/
 		double energy();
-		/*ÕÒÔö¹ãÂ·;*/
+		/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â·;*/
 		bool findpath(int x);
-		/*¶ÔÓ¦µã¼¯Êä³ö;*/
+		/*ï¿½ï¿½Ó¦ï¿½ã¼¯ï¿½ï¿½ï¿½;*/
 		int output(vector<int> &SP, vector<int> &TP, vector<int> &SPout, vector<int> &TPout);
 		
 		double penalty;

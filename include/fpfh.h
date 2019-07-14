@@ -15,15 +15,15 @@
 #include <pcl/visualization/cloud_viewer.h> 
 #include <pcl/visualization/histogram_visualizer.h>
 #include <boost/thread/thread.hpp>
-#include <pcl/features/fpfh_omp.h> //°üº¬fpfh¼ÓËÙ¼ÆËãµÄomp(¶àºË²¢ÐÐ¼ÆËã)
+#include <pcl/features/fpfh_omp.h> //ï¿½ï¿½ï¿½ï¿½fpfhï¿½ï¿½ï¿½Ù¼ï¿½ï¿½ï¿½ï¿½omp(ï¿½ï¿½Ë²ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½)
 #include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_rejection_features.h> //ÌØÕ÷µÄ´íÎó¶ÔÓ¦¹ØÏµÈ¥³ý
-#include <pcl/registration/correspondence_rejection_sample_consensus.h> //Ëæ»ú²ÉÑùÒ»ÖÂÐÔÈ¥³ý
+#include <pcl/registration/correspondence_rejection_features.h> //ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ÏµÈ¥ï¿½ï¿½
+#include <pcl/registration/correspondence_rejection_sample_consensus.h> //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/approximate_voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include <vector>
-#include <Eigen/dense>
+#include <Eigen/Dense>
 #include "utility.h"
 #include "keypointDetection.h"
 

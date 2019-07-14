@@ -6,9 +6,7 @@
 
 #include "dataio.h"
 #include "utility.h"
-#include "GeoTran.h"
 #include "filter.h"
-#include "common_reg.h"
 
 #include <pcl/visualization/common/common.h>
 #include <pcl/visualization/pcl_visualizer.h>

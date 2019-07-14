@@ -14,8 +14,8 @@
 
 using namespace std;
 
-//ÃüÃû·½Ê½1
-//Ä£°å;
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½1
+//Ä£ï¿½ï¿½;
 typedef  pcl::PointCloud<pcl::PointXYZI>::Ptr      pcXYZIPtr;
 typedef  pcl::PointCloud<pcl::PointXYZI>           pcXYZI;
 
@@ -37,7 +37,7 @@ typedef pcl::PointCloud<pcl::Normal> Normals;
 typedef pcl::PointCloud<pcl::FPFHSignature33>::Ptr fpfhFeaturePtr;
 typedef pcl::PointCloud<pcl::FPFHSignature33> fpfhFeature;
 
-//ÃüÃû·½Ê½2
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½2
 typedef  pcl::PointCloud<pcl::PointXYZI>::Ptr      CloudXYZI_Ptr;
 typedef  pcl::PointCloud<pcl::PointXYZI>           CloudXYZI;
 
@@ -103,8 +103,8 @@ namespace utility
 		float min_z;
 		float max_z;
 		float dertaz;
-		float min_z_x;//¸ñÍø×îµÍµãµÄX×ø±ê;
-		float min_z_y;//¸ñÍø×îµÍµãµÄy×ø±ê;
+		float min_z_x;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½Xï¿½ï¿½ï¿½ï¿½;
+		float min_z_y;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½yï¿½ï¿½ï¿½ï¿½;
 		float NeighborMin_z;
 		int PointsNumber;
 		float mean_z;
@@ -133,7 +133,7 @@ namespace utility
 	class CloudUtility
 	{
 	public:
-		//»ñÈ¡ÖÐÐÄ
+		//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½
 		void getCloudCenterPoint(const pcl::PointCloud<pcl::PointXYZ> & cloud, CenterPoint & centerPoint)
 		{
 			double cx = 0, cy = 0, cz = 0;
@@ -148,7 +148,7 @@ namespace utility
 			centerPoint.y = cy;
 			centerPoint.z = cz;
 		}
-		//»ñÈ¡±ß½ç
+		//ï¿½ï¿½È¡ï¿½ß½ï¿½
 		void getCloudBound(const pcl::PointCloud<pcl::PointXYZ> & cloud, Bounds & bound)
 		{
 			double min_x = cloud[0].x;
@@ -160,7 +160,7 @@ namespace utility
 
 			for (int i = 0; i < cloud.size(); i++)
 			{
-				//»ñÈ¡±ß½ç
+				//ï¿½ï¿½È¡ï¿½ß½ï¿½
 				if (min_x > cloud.points[i].x)
 					min_x = cloud.points[i].x;
 				if (min_y > cloud.points[i].y)
@@ -193,7 +193,7 @@ namespace utility
 
 			for (int i = 0; i < cloud.size(); i++)
 			{
-				//»ñÈ¡±ß½ç
+				//ï¿½ï¿½È¡ï¿½ß½ï¿½
 				if (min_x > cloud.points[i].x)
 					min_x = cloud.points[i].x;
 				if (min_y > cloud.points[i].y)
@@ -226,7 +226,7 @@ namespace utility
 
 			for (int i = 0; i < cloud.size(); i++)
 			{
-				//»ñÈ¡±ß½ç
+				//ï¿½ï¿½È¡ï¿½ß½ï¿½
 				if (min_x > cloud.points[i].x)
 					min_x = cloud.points[i].x;
 				if (min_y > cloud.points[i].y)
@@ -248,7 +248,7 @@ namespace utility
 			bound.max_z = max_z;
 		}
 
-		//»ñÈ¡ÖÐÐÄºÍ±ß½ç
+		//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ÄºÍ±ß½ï¿½
 		void getBoundAndCenter(const pcl::PointCloud<pcl::PointXYZI> & cloud, Bounds & bound, CenterPoint& centerPoint)
 		{
 			double min_x = cloud[0].x;
@@ -262,7 +262,7 @@ namespace utility
 
 			for (int i = 0; i < cloud.size(); i++)
 			{
-				//»ñÈ¡±ß½ç
+				//ï¿½ï¿½È¡ï¿½ß½ï¿½
 				if (min_x > cloud.points[i].x)
 					min_x = cloud.points[i].x;
 				if (min_y > cloud.points[i].y)
@@ -297,7 +297,7 @@ namespace utility
 		void GetSubsetBoundary(pcl::PointCloud<pcl::PointXYZ>::Ptr & plane_wall_cloud,
 			vector<int> & index, Bounds & bound)
 		{
-			//¹¹½¨µãÔÆ
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
 			for (int i = 0; i < index.size(); i++)
 			{

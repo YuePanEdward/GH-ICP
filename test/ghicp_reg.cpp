@@ -14,8 +14,6 @@
 #include <pcl/point_types.h>  
 #include <pcl/io/pcd_io.h>  
 #include <pcl/segmentation/supervoxel_clustering.h>  
-#include <Eigen/dense>
-#include <wtypes.h>
 #include <pcl/registration/icp.h> 
 #include <math.h>
 
@@ -73,7 +71,7 @@ int main(int argc, char** argv)
 	filterPointCloudS = filter.filter(pointCloudS);
 	filterPointCloudT = filter.filter(pointCloudT);
 	cout << "Down-sampled point cloud number: [ S:  " << filterPointCloudS->size()<<" , T:  "<<filterPointCloudT->size()<<" ]"<<endl;
-	t3 =clock();
+	//t3 =clock();
 	//cout << "Time for filtering: " << float(t3 - t2)/CLOCKS_PER_SEC  << " s" << endl
 	//	 << "-----------------------------------------------------------------------------" << endl;
 	
@@ -142,7 +140,7 @@ int main(int argc, char** argv)
 	Eigen::MatrixX3d kpSXYZ,kpTXYZ;  
 	kpd.savecoordinates(filterPointCloudS, filterPointCloudT, keyPointIndicesS, keyPointIndicesT, kpSXYZ, kpTXYZ);
 	
-	t4 = clock();
+	//t4 = clock();
 	//cout << "Time for keypoint extraction: " << float(t4 - t3) / CLOCKS_PER_SEC << " s" << endl
 	//	 << "-----------------------------------------------------------------------------" << endl;
 
@@ -156,7 +154,7 @@ int main(int argc, char** argv)
 		bsc.extractBinaryFeatures(filterPointCloudT, keyPointIndicesT, bscT);
 		cout << "Target Cloud BSC extracted" << endl;
 
-		t5 = clock();
+		//t5 = clock();
 		//cout << "Time for BSC feature calculation: " << float(t5 - t4) / CLOCKS_PER_SEC << " s" << endl
 		//		<< "-----------------------------------------------------------------------------" << endl;
 	}
@@ -172,7 +170,7 @@ int main(int argc, char** argv)
 		cout << "Target Cloud FPFH extracted" << endl;
 		fpfh.keyfpfh(source_fpfh_all, target_fpfh_all, keyPointIndicesS, keyPointIndicesT, source_fpfh, target_fpfh);
 		//cout << "Keypoints' FPFH extracted" << endl;
-		t5 = clock();
+		//t5 = clock();
 		//cout << "Time for FPFH feature calculation: " << float(t5 - t4) / CLOCKS_PER_SEC << " s" << endl
 		// 	<< "-----------------------------------------------------------------------------" << endl;
 	}
@@ -227,9 +225,9 @@ int main(int argc, char** argv)
 	Reg.save(filterPointCloudS, pointCloudS, kpSXYZ, kpTXYZ);
 	
 	//Display Original Point Cloud
-	ts1 = clock();
+	//ts1 = clock();
 	Reg.displayPCrb(filterPointCloudT, Reg.sfP, Reg.tkP, Reg.skP);
-	ts2 = clock();
+	//ts2 = clock();
 
 	//Read ground truth RT
 	Reg.readGTRT();
@@ -254,8 +252,8 @@ int main(int argc, char** argv)
 	{
 		Eigen::Matrix4d Rt;
 		cout << Reg.iteration_number << " : " << endl;
-		clock_t ts, te1, te2, te3;
-		ts = clock();
+		//clock_t ts, te1, te2, te3;
+		//ts = clock();
 		//Calculate ED
 		Reg.calED();
 		//Calculate CD
@@ -272,15 +270,15 @@ int main(int argc, char** argv)
 		if (io.paralist.correspondence_type == 0) Reg.findcorrespondenceNN();
 		else if (io.paralist.correspondence_type == 1) Reg.findcorrespondenceKM();
 
-		te1 = clock();
+		//te1 = clock();
 		//Reg.displayCorrespondence(filterPointCloudS, Reg.tfP);  //Display matching result
 		Reg.transformestimation(Rt);//using  SVD
 		Reg.adjustweight(estimated_IoU);
 		Reg.Rt_tillnow = Rt*Reg.Rt_tillnow;
 		cout <<"RT till now"<<endl<< Reg.Rt_tillnow << endl;
-		te2 = clock();
+		//te2 = clock();
 		if (io.paralist.output==1) Reg.output(Reg.sfP);  //Output result per iteration
-		te3 = clock();
+		//te3 = clock();
 		Reg.iteration_number++;
 		
 		/*cout << "Time for finding correspondence : " << float(te1 - ts) / CLOCKS_PER_SEC << " s" << endl
@@ -291,7 +289,7 @@ int main(int argc, char** argv)
 	}
 
 	//Reg.energyRMSoutput();
-	t7 = clock();
+	//t7 = clock();
 	
 	//cout << "converge_break" << endl;
 	cout << "final Rt without classic ICP" << endl<< Reg.Rt_tillnow << endl;
@@ -299,10 +297,10 @@ int main(int argc, char** argv)
 	<< "-----------------------------------------------------------------------------" << endl;
 	
 	//display and output IGSP Registered Point Cloud
-	ts3 = clock();
+	//ts3 = clock();
 	Reg.output(Reg.sfP);
 	Reg.displayPCvb(filterPointCloudT, Reg.sfP, Reg.tkP, Reg.skP);
-	ts4 = clock();
+	//ts4 = clock();
 	
 
 	//---------------------------classic ICP refinement--------------------------------//
