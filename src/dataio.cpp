@@ -210,6 +210,10 @@ bool DataIo<PointT>::readCloudFile(const string &fileName, const typename pcl::P
 		cout << "Undefined Point Cloud Format." << endl;
 		return 0;
 	}
+
+	LOG(INFO) <<"Data loaded";
+	LOG(INFO) <<"Raw point number: [ S:  " << pointCloudS->size() << "  , T:  " << pointCloudT->size()<<" ]";
+	
 }
 
 template <typename PointT>

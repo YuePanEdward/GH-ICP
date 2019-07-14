@@ -51,26 +51,20 @@ int main(int argc, char** argv)
 	cout << "!---------------------------GH-ICP------------------------------!" << endl;
     
 	//timing
-	clock_t t1, t2, t3, t4, t5, t6, t7, t8, t9, ts1, ts2, ts3, ts4;
+	//clock_t t1, t2, t3, t4, t5, t6, t7, t8, t9, ts1, ts2, ts3, ts4;
 
 	/*----------------------- 1. Data input-------------------------*/
     
 	DataIo<Point_T> io;
 	pcl::PointCloud<Point_T>::Ptr pointCloudT(new pcl::PointCloud<Point_T>()), pointCloudS(new pcl::PointCloud<Point_T>());
 	
-	t1 = clock();
 	io.readCloudFile(filenameT,pointCloudT);
 	io.readCloudFile(filenameS,pointCloudS);
 
-	cout << "Data loaded" << endl;
-	cout << "Raw point number: [ S:  " << pointCloudS->size() << "  , T:  " << pointCloudT->size()<<" ]"<<endl;
-	io.readParalist(paralistfile);
-	io.displayparameter();
-	t2 = clock();
-	//cout << "Time for importing data: " << (t2 - t1)*1.0 / 1000 << " s" << endl
-	//	 << "-----------------------------------------------------------------------------" << endl;
-	
+	//io.readParalist(paralistfile);
+	//io.displayparameter();
 
+	
 	/*------------------ 2. Voxelization filtering------------------------*/
 
 	float resolution = io.paralist.downsample_resolution;//control the subsampling scale (unit:m) ;//0.04f for TLS//0.00025f for bunny
