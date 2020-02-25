@@ -1,21 +1,21 @@
 #include "StereoBinaryFeature.h"
-#include <basetsd.h>
 
 
+namespace ghicp
+{
 
-//输出shared_array 转换为char的数组
 boost::shared_array<unsigned char> StereoBinaryFeature::make_shared()
 {
 	boost::shared_array<unsigned char> result(new unsigned char[byte_]);
-	for(int i=0;i<byte_;i++)
-		result[i]=feature_[i];
+	for (int i = 0; i < byte_; i++)
+		result[i] = feature_[i];
 	return result;
 }
 
-//应用于计算一个byte中1的个数;
+//How many 1 in a binary  number converted from a Hexadecimal
 unsigned char StereoBinaryFeature::byteBitsLookUp(unsigned char b)
 {
-	static const unsigned char table[256]  = {
+	static const unsigned char table[256] = {
 		/* 0 */ 0, /* 1 */ 1, /* 2 */ 1, /* 3 */ 2,
 		/* 4 */ 1, /* 5 */ 2, /* 6 */ 2, /* 7 */ 3,
 		/* 8 */ 1, /* 9 */ 2, /* a */ 2, /* b */ 3,
@@ -79,75 +79,71 @@ unsigned char StereoBinaryFeature::byteBitsLookUp(unsigned char b)
 		/* f0 */ 4, /* f1 */ 5, /* f2 */ 5, /* f3 */ 6,
 		/* f4 */ 5, /* f5 */ 6, /* f6 */ 6, /* f7 */ 7,
 		/* f8 */ 5, /* f9 */ 6, /* fa */ 6, /* fb */ 7,
-		/* fc */ 6, /* fd */ 7, /* fe */ 7, /* ff */ 8
-	};
+		/* fc */ 6, /* fd */ 7, /* fe */ 7, /* ff */ 8};
 	return table[b];
 }
 
-/*计算两个二进制特征之间的hammingDistance返回值为-1时表示两个特征大小不一致无法计算*/
-int StereoBinaryFeature::hammingDistance(const StereoBinaryFeature & sbf1,const StereoBinaryFeature & sbf2)
+//Calculate the Hamming distance between two binary features
+int StereoBinaryFeature::hammingDistance(const StereoBinaryFeature &sbf1, const StereoBinaryFeature &sbf2)
 {
-	if(sbf1.size_==sbf2.size_)
+	if (sbf1.size_ == sbf2.size_)
 	{
-		//以位运算形式计算hamming distance
-		//首先将对应byte上异或
+		//XOR
 		int one_count = 0;
-		for(int i=0;i<sbf1.byte_;i++)
+		for (int i = 0; i < sbf1.byte_; i++)
 		{
-			one_count+=byteBitsLookUp(sbf1.feature_[i]^sbf2.feature_[i]);
+			one_count += byteBitsLookUp(sbf1.feature_[i] ^ sbf2.feature_[i]);
 		}
 		return one_count;
 	}
 	else
 	{
-		cout<<"二进制特征大小不一致\n";
+		cout << "Different size of binary feature\n";
 		return -1;
 	}
 }
 
-
-/*二进制形式输出特征*/
-void StereoBinaryFeature::writeFeatures(const vector<StereoBinaryFeature>& features, const string& path)
+//Output the binary feature
+void StereoBinaryFeature::writeFeatures(const vector<StereoBinaryFeature> &features, const string &path)
 {
-	ofstream bfout(path,ios::binary|ios::out);
-	bfout.write((char*)&features[0].size_,sizeof(unsigned int));
-	bfout.write((char*)&features[0].byte_,sizeof(unsigned int));
+	ofstream bfout(path, ios::binary | ios::out);
+	bfout.write((char *)&features[0].size_, sizeof(unsigned int));
+	bfout.write((char *)&features[0].byte_, sizeof(unsigned int));
 	size_t size = features.size();
-	bfout.write((char*)&(size),sizeof(int));
-	for(int i=0;i<features.size();i++)
+	bfout.write((char *)&(size), sizeof(int));
+	for (int i = 0; i < features.size(); i++)
 	{
-		for(int j=0;j<features[0].byte_;j++)
+		for (int j = 0; j < features[0].byte_; j++)
 		{
-			bfout.write(&features[i].feature_[j],1);
+			bfout.write(&features[i].feature_[j], 1);
 		}
 	}
 	bfout.flush();
 	bfout.close();
 }
 
-
-
-/*二进制形式读入特征*/
-void StereoBinaryFeature::readFeatures(vector<StereoBinaryFeature>& features, const string& path)
+//Input the binary feature
+void StereoBinaryFeature::readFeatures(vector<StereoBinaryFeature> &features, const string &path)
 {
-	features.swap(vector<StereoBinaryFeature>());
+	vector<StereoBinaryFeature>().swap(features);
 	unsigned int byte_num;
 	unsigned int bit_num;
 	int size;
-	ifstream bfin(path,ios::binary|ios::in);
-	bfin.read((char*)&bit_num,sizeof(unsigned int));
-	bfin.read((char*)&byte_num,sizeof(unsigned int));
-	bfin.read((char*)&(size),sizeof(int));
+	ifstream bfin(path, ios::binary | ios::in);
+	bfin.read((char *)&bit_num, sizeof(unsigned int));
+	bfin.read((char *)&byte_num, sizeof(unsigned int));
+	bfin.read((char *)&(size), sizeof(int));
 	features.resize(size);
-	for(int i=0;i<features.size();i++)
+	for (int i = 0; i < features.size(); i++)
 	{
 		StereoBinaryFeature feature(bit_num);
-		for(int j=0;j<byte_num;j++)
+		for (int j = 0; j < byte_num; j++)
 		{
-			bfin.read(&feature.feature_[j],1);
+			bfin.read(&feature.feature_[j], 1);
 		}
-		features[i]=feature;
+		features[i] = feature;
 	}
 	bfin.close();
 }
 
+} // namespace ghicp

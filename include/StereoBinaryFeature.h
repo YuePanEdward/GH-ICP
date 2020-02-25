@@ -1,5 +1,5 @@
-#ifndef STEREO_BINARY_FEATRUE
-#define STEREO_BINARY_FEATRUE
+#ifndef _INCLUDE_STEREO_BINARY_FEATRUE_H
+#define _INCLUDE_STEREO_BINARY_FEATRUE_H
 
 #include <iostream>
 #include <vector>
@@ -19,13 +19,16 @@
 
 using namespace std;
 
+namespace ghicp
+{
+
 class StereoBinaryFeature
 {
-public:
-	char * feature_;
-	unsigned int size_;	//��ʾbit��Ŀ;
-	unsigned int byte_;	//��ʾ�ֽ���Ŀ;
-	
+  public:
+	char *feature_;
+	unsigned int size_; //number of bit;
+	unsigned int byte_; //number of byte;
+
 	int bscVisualWordsIndex_;
 
 	vector<int> bscVisualWordsIndexV_;
@@ -34,15 +37,15 @@ public:
 
 	struct CoordinateSystem
 	{
-		Eigen::Vector3f  xAxis;
-		Eigen::Vector3f  yAxis;
-		Eigen::Vector3f  zAxis;
-		Eigen::Vector3f  origin;
+		Eigen::Vector3f xAxis;
+		Eigen::Vector3f yAxis;
+		Eigen::Vector3f zAxis;
+		Eigen::Vector3f origin;
 	};
-	CoordinateSystem localSystem_;//�ֲ�����ϵ;
+	CoordinateSystem localSystem_; //Local Coordinate System (LCS)
 
-	//���캯��;
-	StereoBinaryFeature(unsigned int size = 0) :size_(size), byte_(0)
+	//Constructor
+	StereoBinaryFeature(unsigned int size = 0) : size_(size), byte_(0)
 	{
 		if (size != 0)
 		{
@@ -53,6 +56,8 @@ public:
 			{
 				feature_[i] = 0;
 			}
+
+			//initialization
 			localSystem_.xAxis.x() = 0.0f;
 			localSystem_.xAxis.y() = 0.0f;
 			localSystem_.xAxis.z() = 0.0f;
@@ -75,7 +80,7 @@ public:
 			feature_ = nullptr;
 	}
 
-	//��������
+	//Destructor
 	~StereoBinaryFeature()
 	{
 		if (feature_ != nullptr)
@@ -84,8 +89,8 @@ public:
 		}
 	}
 
-	//��ֵ���캯��
-	StereoBinaryFeature & operator=(const StereoBinaryFeature & sbf)
+	//Operator overloading (Assignment)
+	StereoBinaryFeature &operator=(const StereoBinaryFeature &sbf)
 	{
 		this->size_ = sbf.size_;
 		if (size_ > 0)
@@ -103,8 +108,8 @@ public:
 		return *this;
 	}
 
-	//���ƹ��캯��
-	StereoBinaryFeature(const StereoBinaryFeature& sbf)
+	//Copy
+	StereoBinaryFeature(const StereoBinaryFeature &sbf)
 	{
 		this->size_ = sbf.size_;
 		if (size_ > 0)
@@ -122,8 +127,7 @@ public:
 			this->feature_ = nullptr;
 	}
 
-
-	//�õ�nλbit�ϵ�ֵΪ1��0     �������±���������
+	//Get the 0/1 value on n th position without subscription number checking
 	bool getNthBitValue(int n)
 	{
 		int bit_num = n % 8;
@@ -132,7 +136,7 @@ public:
 		return (feature_[byte_num] & test_num) != 0;
 	}
 
-	//����nλbit�ϵ�ֵΪ1	�������±���������
+	//Set the 0/1 value on n th position without subscription number checking
 	void setNthBitValue(int n)
 	{
 		int bit_num = n % 8;
@@ -141,43 +145,41 @@ public:
 		feature_[byte_num] |= test_num;
 	}
 
-	//��������ж�;
-	bool operator==(const StereoBinaryFeature & sbf) const
+	//Operator overloading (equal)
+	bool operator==(const StereoBinaryFeature &sbf) const
 	{
-		//��С������򷵻�false
+		//different size -> false
 		if (sbf.size_ != size_)
 			return false;
-		//����һ��bit�ϲ�ͬ�򷵻�false
-		for (int i = 0; i<byte_; i++)
+		//any difference at any position -> false
+		for (int i = 0; i < byte_; i++)
 		{
-			//������0���ʾ����bit��ͬ
-			if ((feature_[i] ^ sbf.feature_[i])>0)
+			//XOR > 0 -> there's some difference
+			if ((feature_[i] ^ sbf.feature_[i]) > 0)
 				return false;
 		}
 		return true;
 	}
 
-	//���shared_array ת��Ϊchar������
 	boost::shared_array<unsigned char> make_shared();
 
-	/*������������������֮���hammingDistance����ֵΪ-1ʱ��ʾ����������С��һ���޷�����*/
-	int hammingDistance(const StereoBinaryFeature & sbf1, const StereoBinaryFeature & sbf2);
+	/*Calculate the hamming distance of two binary feature, if the size is different, return -1*/
+	int hammingDistance(const StereoBinaryFeature &sbf1, const StereoBinaryFeature &sbf2);
 
-	/*��������ʽ��������*/
-	void readFeatures(vector<StereoBinaryFeature>& features, const string& path);
+	/*Read the binary feature*/
+	void readFeatures(vector<StereoBinaryFeature> &features, const string &path);
 
-	/*��������ʽ�������*/
-	void writeFeatures(const vector<StereoBinaryFeature>& features, const string& path);
-	
+	/*Write the binary feature*/
+	void writeFeatures(const vector<StereoBinaryFeature> &features, const string &path);
 
-private:
+  private:
 	unsigned char byteBitsLookUp(unsigned char b);
-
 };
 
-typedef StereoBinaryFeature  SBF;
-typedef vector<SBF>  vectorSBF;
-typedef vector<vectorSBF>  doubleVectorSBF;
-typedef vector<doubleVectorSBF>  TribleVectorSBF;
+typedef StereoBinaryFeature SBF;
+typedef vector<SBF> vectorSBF;
+typedef vector<vectorSBF> doubleVectorSBF;
+typedef vector<doubleVectorSBF> TribleVectorSBF;
 
-#endif
+} // namespace ghicp
+#endif //_INCLUDE_STEREO_BINARY_FEATRUE_H

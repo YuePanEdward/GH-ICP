@@ -146,34 +146,7 @@ int main(int argc, char** argv)
 
 	/*---------------------- 4.(1) Feature calculation BSC--------------------------*/
 	
-	StereoBinaryFeatureExtractor bsc(io.paralist.feature_r, 7);    //Create BSC object.
-    doubleVectorSBF bscS, bscT;
-	if (io.paralist.feature == 1){
-		bsc.extractBinaryFeatures(filterPointCloudS, keyPointIndicesS, bscS);
-		cout << "Source Cloud BSC extracted" << endl;
-		bsc.extractBinaryFeatures(filterPointCloudT, keyPointIndicesT, bscT);
-		cout << "Target Cloud BSC extracted" << endl;
-
-		//t5 = clock();
-		//cout << "Time for BSC feature calculation: " << float(t5 - t4) / CLOCKS_PER_SEC << " s" << endl
-		//		<< "-----------------------------------------------------------------------------" << endl;
-	}
-
-	/*---------------------- 4.(2) Feature calculation FPFH--------------------------*/
-	FPFHfeature fpfh;
-	fpfhFeaturePtr source_fpfh(new fpfhFeature), target_fpfh(new fpfhFeature);
-	fpfh.radius = io.paralist.feature_r;
-	if (io.paralist.feature == 2){
-		fpfhFeaturePtr source_fpfh_all = fpfh.compute_fpfh_feature(filterPointCloudS);
-		cout << "Source Cloud FPFH extracted" << endl;
-		fpfhFeaturePtr target_fpfh_all = fpfh.compute_fpfh_feature(filterPointCloudT);
-		cout << "Target Cloud FPFH extracted" << endl;
-		fpfh.keyfpfh(source_fpfh_all, target_fpfh_all, keyPointIndicesS, keyPointIndicesT, source_fpfh, target_fpfh);
-		//cout << "Keypoints' FPFH extracted" << endl;
-		//t5 = clock();
-		//cout << "Time for FPFH feature calculation: " << float(t5 - t4) / CLOCKS_PER_SEC << " s" << endl
-		// 	<< "-----------------------------------------------------------------------------" << endl;
-	}
+	
 
 	/*----------------------- 5. Registration-------------------------*/
 	Keypoints Kp;
