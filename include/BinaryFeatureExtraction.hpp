@@ -603,6 +603,7 @@ class BSCEncoder : public StereoBinaryFeature
 		}
 	}
 
+    //main entrance
 	void extractBinaryFeatures(const typename pcl::PointCloud<PointT>::Ptr &input_cloud,
 							   const pcl::PointIndicesPtr &indices,
 							   doubleVectorSBF &bscFeatures)
@@ -657,8 +658,12 @@ class BSCEncoder : public StereoBinaryFeature
 
 		vector<StereoBinaryFeature>().swap(features_coor1);
 		vector<StereoBinaryFeature>().swap(features_coor2);
-	}
 
+		cout<<"Extract BSC feature done."<<endl;
+	}
+    
+	//entrance for each keypoint  
+	//4DOF -> 6DOF
 	bool extractBinaryFeatureOfKeypoint(const typename pcl::PointCloud<PointT>::Ptr &input_cloud,
 										size_t ptIndex, const std::vector<int> &searchIndexes,
 										vectorSBF &features)

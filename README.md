@@ -17,10 +17,7 @@ To highlight two key innovative points of the algorithm, we renamed IGSP as GH-I
  
  ![alt text](img/showresult2.jpg)
  
-### [Video](https://www.youtube.com/watch?v=DZr-8AceSqA)
-
-### [Paper](https://arxiv.org/abs/1808.03899) 
-Iterative Global Similarity Points: A robust coarse-to-fine integration solution for pairwise 3D point cloud registration, Yue Pan, Bisheng Yang, Fuxun Liang, Zhen Dong, Accepted by 3DV-2018 
+### [Paper](https://ieeexplore.ieee.org/abstract/document/8490968) 
 
 ### Citation
 If you find our work useful in your research, please consider citing:
@@ -34,25 +31,32 @@ If you find our work useful in your research, please consider citing:
 
 ### [Poster](https://github.com/YuePanEdward/YuePanEdward.github.io/blob/master/assets/3DVposter.pdf)
 
+### original version available on Windows.
+Compiled with Visual Studio 12 2013 Win64 Release / Debug Passed, see [former release](https://github.com/YuePanEdward/GH-ICP/releases)
 
-### Now available on Windows.
-Compiled with Visual Studio 12 2013 Win64 Release / Debug Passed （see former release)
+
+### under code refactoring
+
+### How to use 
+
+1. Compile
 ```
-PCL 1.8+ Required
-OpenCV 2.4+ Required
-LibLas Required
-VTK 6.2+ Required
-Boost 1.59+ Requried
+mkdir build
+cd build
+cmake ..
+make 
 ```
 
-### How to use
+2. Run
 ```
-1.Input Target cloud
-2.Input Source cloud
-3.Input parameter list or directly use the GH-ICP default settings for pairwise large-scale TLS registration 
-4.Estimate the approximate overlapping rate (IoU) of the point cloud pair
+cd ..
+# configure the script/run.sh file for editting the data path and key parameters
+sh script/run.sh
 ```
-### Parameter list 
+
+
+
+#### Parameter list 
 Take the TLS (outdoor buildings) registration parameter setting as an example.
 ```
 0.05
@@ -75,7 +79,7 @@ Take the TLS (outdoor buildings) registration parameter setting as an example.
 0
 ```
 
-### Notification
+#### Notification
 ```
 1  resolution of voxel downsampling (unit:m)
 2  [key parameter] keypoint_non_max_r (unit:m) (Keypoint detection's non-max supression value)  
@@ -97,7 +101,7 @@ Take the TLS (outdoor buildings) registration parameter setting as an example.
 18 output or not output (If this value is 1, then the point cloud of every four iterations would be output. Or there would be no output except for the last one)
 ```
 
-### Tips
+#### Tips
 
 1. You can choose from GH-ICP,G-ICP,H-ICP,Classic-ICP.
 ```
@@ -108,6 +112,8 @@ Classic ICP: parameter16 = 0 parameter17 = 0
 ```   
    According to the experiments, GH-ICP has the best accuracy, robustness and applicability. However its limited efficiency o(n^3) make it not suitable for engineering application. Then you can choose to use H-ICP, which is faster o(n^2) but less robust.
 
-### Reference
+#### Other Reference
 
+```
 [1]BSC feature: Please refer to our previous article：Dong, Z., Yang, B., Liu, Y., Liang, F., Li, B., & Zang, Y., 2017. A novel binary shape context for 3d local surface description. Isprs Journal of Photogrammetry & Remote Sensing, 130, 431-452.
+```
