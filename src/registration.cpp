@@ -21,6 +21,91 @@ using namespace boost::filesystem;
 
 namespace ghicp
 {
+
+bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
+{
+	//Calculate Feature Distance
+	switch (Ft_)
+	{
+	case BSC:
+		calFD_BSC();
+		break;
+	case FPFH:
+		//calFD_FPFH();
+		break;
+	default:
+		break;
+	}
+
+	while (!converge)
+	{
+		Eigen::Matrix4d Rt_temp;
+		cout << iteration_number << " : " << endl;
+		//clock_t ts, te1, te2, te3;
+		//ts = clock();
+		
+		//Calculate ED
+		calED();
+		
+		//Calculate CD
+		switch (Ft_)
+		{
+		case BSC:
+			calCD_BSC();
+			break;
+		case FPFH:
+			calCD_FPFH();
+			break;
+		case None:
+			calCD_NF();
+			break;
+		default:
+			break;
+		}
+        
+		// Find correspondence
+		switch (Ct_)
+		{
+		case KM:
+			findcorrespondenceKM();
+			break;
+		case NN:
+			findcorrespondenceNN();
+			break;
+		case NNR:
+			findcorrespondenceNNR();
+			break;
+		default:
+			break;
+		}
+		
+		//te1 = clock();
+		
+		//Estimating transformation
+		transformestimation(Rt_temp);
+		adjustweight();
+
+		Rt_tillnow = Rt_temp * Rt_tillnow;
+		cout << "Accumulated transformation matrix till now:" << endl
+			 << Rt_tillnow << endl;
+		//te2 = clock();
+		// if (io.paralist.output == 1)
+		// 	Reg.output(Reg.sfP); //Output result per iteration
+		//te3 = clock();
+		iteration_number++;
+
+		/*cout << "Time for finding correspondence : " << float(te1 - ts) / CLOCKS_PER_SEC << " s" << endl
+			 << "Time for transform estimation and updating : " << float(te2 - te1) / CLOCKS_PER_SEC << " s" << endl
+			 << "Time for output temporal result : " << float(te3 - te2) / CLOCKS_PER_SEC << " s" << endl
+			 << "Time for one iteration : " << float(te3 - ts) / CLOCKS_PER_SEC << " s" << endl
+			 << "-----------------------------------------------------------------------------" << endl;*/
+	}
+    Rt_final=Rt_tillnow;
+	cout << "Final transformation matrix:"<<endl<<Rt_final << endl;
+    
+	return 1;
+}
+
 bool GHRegistration::calED()
 {
 	//double minED = 10000.0, maxED =0.0;
@@ -47,9 +132,11 @@ bool GHRegistration::calED()
 	}//ED OK*/
 	return 1;
 }
-bool GHRegistration::calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT)
+bool GHRegistration::calFD_BSC()
 {
-	/*
+
+# if 0
+    //output feature distance
 	ofstream ofs;
 	ostringstream oss;
 	oss << " Hamming distance.txt";
@@ -68,7 +155,11 @@ bool GHRegistration::calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSB
 	}
 	}
 	ofs.close();
-	}*/
+	}
+#endif 
+    
+	doubleVectorSBF bscS= KP.bscS;
+	doubleVectorSBF bscT= KP.bscT;
 
 	SBF sbf0;
 	//int minFD = 1000, maxFD = 0;
@@ -98,14 +189,14 @@ bool GHRegistration::calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSB
 }
 
 #if 0
-bool GHRegistration::calFD_FPFH(const fpfhFeaturePtr &fpfhS, const fpfhFeaturePtr &fpfhT)
+bool GHRegistration::calFD_FPFH()
 {
 	FPFHfeature fpfhcal;
 	for (size_t i = 0; i < KP.kps_num; ++i)
 	{
 		for (size_t j = 0; j < KP.kpt_num; ++j)
 		{
-			EF.FD[i][j] = fpfhcal.compute_fpfh_distance(fpfhS->points[i].histogram, fpfhT->points[j].histogram); //(0-1)
+			EF.FD[i][j] = fpfhcal.compute_fpfh_distance(KP.fpfhS->points[i].histogram, KP.fpfhT->points[j].histogram); //(0-1)
 		}
 	}
 	//cout << "FD calculation completed." << endl;
@@ -135,6 +226,9 @@ bool GHRegistration::calCD_NF()
 	{
 		EF.penalty = CDmean / EF.penalty_initial;
 	}
+    
+	EF.penalty=max(CDmean,5.0);
+
 	cout << "CDmean: " << CDmean << "  penalty:" << EF.penalty << endl;
 	return 1;
 }
@@ -181,10 +275,8 @@ bool GHRegistration::calCD_BSC()
 	{
 		EF.penalty = (CDmean - EF.penalty_initial * CDstd);
 	}
-	//EF.penalty = CDmean / 3.0;
-	//EF.penalty = (CDmean - EF.para1_penalty * CDstd);  //this one
-	//EF.penalty = 10000;
-	//EF.penalty = min(CDmean / EF.para2_penalty, CDmean - EF.para1_penalty * CDstd);
+    EF.penalty=max(EF.penalty,5.0);
+
 	cout << "weight FD:  " << WFD << "  weight ED:  " << WED << endl;
 	cout << "CDmean: " << CDmean << " CDstd: " << CDstd << "  penalty:" << EF.penalty << endl;
 
@@ -667,17 +759,17 @@ bool GHRegistration::findcorrespondenceNN()
 	return 1;
 }
 
-bool GHRegistration::adjustweight(double estimated_IoU)
+bool GHRegistration::adjustweight()
 {
-	if (estimated_IoU / IoU > adjustweight_ratio)
+	if (estimated_IoU_ / IoU > adjustweight_ratio_)
 	{
-		EF.para1_penalty += adjustweight_step;
-		EF.para2_penalty += adjustweight_step;
+		EF.para1_penalty += adjustweight_step_;
+		EF.para2_penalty += adjustweight_step_;
 	}
-	else if (IoU / estimated_IoU > adjustweight_ratio)
+	else if (IoU / estimated_IoU_ > adjustweight_ratio_)
 	{
-		EF.para1_penalty -= adjustweight_step;
-		EF.para2_penalty -= adjustweight_step;
+		EF.para1_penalty -= adjustweight_step_;
+		EF.para2_penalty -= adjustweight_step_;
 	}
 	else
 	{
@@ -695,7 +787,7 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 		converge = 1;
 	//Estimate overlapping rate. Attention! Integer->Double
 	IoU = 1.0 * cor_number / (KP.kps_num + KP.kpt_num - cor_number);
-	
+
 #if 0
 	for (int i = 0; i < cor_number; i++)
 	{
@@ -731,8 +823,8 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 	Rt(3, 3) = 1;
 	cout << "this Rt" << endl;
 	cout << Rt << endl;
-	
-# endif
+
+#endif
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in(new pcl::PointCloud<pcl::PointXYZ>());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZ>());
@@ -762,7 +854,7 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 	t = Rt0.block(0, 3, 3, 1).cast<double>();
 
 	Rt = Rt0.cast<double>();
-	cout << "this Rt" << endl;
+	cout << "Transformation matrix of this iteration:" << endl;
 	cout << Rt << endl;
 
 	double dx = t(0);
@@ -784,7 +876,7 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 		converge = 1;
 	}*/
 
-	if (abs(dx) < converge_t && abs(dy) < converge_t && abs(dz) < converge_t && abs(ax) < converge_r && abs(ay) < converge_r && abs(az) < converge_r) //converge condition
+	if (abs(dx) < converge_t_ && abs(dy) < converge_t_ && abs(dz) < converge_t_ && abs(ax) < converge_r_ && abs(ay) < converge_r_ && abs(az) < converge_r_) //converge condition
 	{
 		converge = 1;
 	}
@@ -817,7 +909,7 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 			cout << "Registration Failed." << endl;
 	}
 
-    return 1;
+	return 1;
 }
 
 /*void  Registration::update(Eigen::Matrix4Xd &TKP, Eigen::Matrix4Xd &TFP, Eigen::Matrix4d &Rt)
@@ -827,7 +919,6 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 	KP.kpTXYZ = (TKP.block(0,0,TKP.cols(),3)).transpose();
 
 }*/
-
 
 #if 0
 bool GHRegistration::save(const pcXYZIPtr &cloudfS, const pcXYZIPtr &cloudS,

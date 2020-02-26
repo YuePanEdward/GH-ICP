@@ -13,9 +13,7 @@
 #include <pcl/impl/point_types.hpp>
 #include <pcl/impl/pcl_base.hpp>
 
-//Eigen
-#include <Eigen/Core>
-#include <Eigen/Geometry>
+
 
 #include <vector>
 #include <list>

@@ -19,9 +19,8 @@ struct Energyfunction
 	int min_cor;
 	double KM_eps;
 	float scale;
-    
-    Energyfunction(){;}
-    
+
+	Energyfunction() { ; }
 
 	void init(int kps_num, int kpt_num, float bbx_magnitude)
 	{
@@ -29,7 +28,7 @@ struct Energyfunction
 		FD.resize(kps_num, vector<double>(kpt_num));
 		CD.resize(kps_num, vector<double>(kpt_num));
 
-		penalty_initial = 2.5; //initial penalty for FD (mean-k*std)
+		penalty_initial = 2.0; //initial penalty for FD (mean-k*std)
 		para1_penalty = 1.0;   //for ED penalty estimation
 		para2_penalty = 1.0;   //for FD penalty estimation
 
@@ -45,31 +44,45 @@ struct Keypoints
 {
 	int kps_num, kpt_num;
 	Eigen::MatrixX3d kpSXYZ, kpTXYZ;
+	doubleVectorSBF bscS, bscT;
+	fpfhFeaturePtr fpfhS, fpfhT;
 
-	Keypoints(){;}
+	Keypoints() { ; }
 
-    void init(int nkps, int nkpt, Eigen::MatrixX3d &kps, Eigen::MatrixX3d &kpt)
+	void setCoordinate(Eigen::MatrixX3d &kps, Eigen::MatrixX3d &kpt)
 	{
-		kps_num=nkps; 
-		kpt_num=nkpt;
-		kpSXYZ=kps;
-		kpTXYZ=kpt; 
+		kpSXYZ = kps;
+		kpTXYZ = kpt;
+		kps_num = kpSXYZ.rows();
+		kpt_num = kpTXYZ.rows();
 	}
-	
+
+	void setBSCfeature(const doubleVectorSBF &bsc_S, const doubleVectorSBF &bsc_T)
+	{
+		bscS = bsc_S;
+		bscT = bsc_T;
+	}
+
+	void setFPFHfeature(const fpfhFeaturePtr &fpfh_S, const fpfhFeaturePtr &fpfh_T)
+	{
+		fpfhS = fpfh_S;
+		fpfhT = fpfh_T;
+	}
 };
 
 class GHRegistration
 {
   public:
-	GHRegistration(int nkps, int nkpt, Eigen::MatrixX3d &kpSXYZ, Eigen::MatrixX3d &kpTXYZ,
-				   float bbx_magnitude, float radiusNonMax,
-				   float weight_adjustment_ratio, float weight_adjustment_step,
+	GHRegistration(Keypoints Kp, Energyfunction Ef, FeatureType Ft, CorrespondenceType Ct,
+				   float radiusNonMax, float weight_adjustment_ratio, float weight_adjustment_step, float estimated_IoU,
 				   float converge_tran = 0.005, float converge_rot = 0.005,
 				   int ite = 0, int ite2 = 0)
 	{
-		
-		KP.init(nkps, nkpt, kpSXYZ, kpTXYZ);
-		EF.init(nkps, nkpt,bbx_magnitude);
+
+		KP = Kp;
+		EF = Ef;
+		Ft_ = Ft;
+		Ct_ = Ct;
 
 		iteration_number = ite;
 		iteration_k = ite2;
@@ -85,19 +98,48 @@ class GHRegistration
 		matchlist.resize(KP.kps_num, std::vector<int>(200));
 
 		//Weight adjustment and convergence condition
-		adjustweight_ratio = weight_adjustment_ratio;
-		adjustweight_step = weight_adjustment_step;
-		converge_t = converge_tran;
-		converge_r = converge_rot;
+		adjustweight_ratio_ = weight_adjustment_ratio;
+		adjustweight_step_ = weight_adjustment_step;
+		converge_t_ = converge_tran;
+		converge_r_ = converge_rot;
+		estimated_IoU_ = estimated_IoU;
 	}
 
 	//Main entrance
-	bool ghicp_reg();
+	bool ghicp_reg(Eigen::Matrix4d &Rt_final);
 
+	bool calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
+	bool cal_recall_precision();
+
+	double calCloudFeatureDistance(int cor_num);
+
+	double gt_maxdis; //ground truth max distance for correspondence keypoint pair
+
+	double PCFD; //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
+
+	Eigen::Matrix4d Rt_tillnow; //Temp transformation matrix
+	Eigen::Matrix4d Rt_gt;		//ground truth transformation matrix
+
+	std::vector<std::vector<int>> matchlist; //Source Point Cloud match result for every iteration
+	std::vector<int> gtmatchlist;			 //Ground truth match result for Source Point Cloud
+
+	double RMS; //Temp root mean square error
+
+	//save energy,RMS before & after transformation, correspondence number, correspondence precision and recall of each iteration for displaying
+
+	std::vector<double> energy, rmse, rmseafter, pre, rec;
+	std::vector<int> cor;
+
+	//save Target point cloud coordinates
+	Eigen::Matrix4Xd skP, sfP, sP; //Source keypoints, Source downsampled points, Source full points (after temp transformation)
+	Eigen::Matrix4Xd tkP;		   //Target keypoints
+
+  protected:
+  private:
 	bool calED();
 
-	bool calFD_BSC(const doubleVectorSBF &bscS, const doubleVectorSBF &bscT);
-	bool calFD_FPFH(const fpfhFeaturePtr &fpfhS, const fpfhFeaturePtr &fpfhT);
+	bool calFD_BSC();
+	bool calFD_FPFH();
 
 	bool calCD_NF();
 	bool calCD_BSC();
@@ -109,16 +151,17 @@ class GHRegistration
 
 	bool transformestimation(Eigen::Matrix4d &Rt);
 	bool update(Eigen::Matrix4Xd &TKP, Eigen::Matrix4Xd &TFP, Eigen::Matrix4d &Rt);
-	bool adjustweight(double estimated_overlap_ratio);
+	bool adjustweight();
 
-	bool calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
-	bool cal_recall_precision();
-
-	double calCloudFeatureDistance(int cor_num);
+	Keypoints KP;
+	Energyfunction EF;
+	FeatureType Ft_;
+	CorrespondenceType Ct_;
+	Eigen::MatrixX3d Spoint, Tpoint;
 
 	int iteration_number; //real iteration number from 1
 	int iteration_k;	  //iteration number determined for weight
-	double RMS;
+
 	double FDM;	//correspondence feature distance mean value
 	double FDstd;  //correspondence feature distance standard deviation
 	double IoU;	//Intersection over Union ratio of registration (Similarly to overlapping rate)
@@ -127,35 +170,13 @@ class GHRegistration
 	bool converge;
 	bool index_output;
 
-	double converge_t; //convergence condition in translation (unit:m)
-	double converge_r; //convergence condition in rotation    (unit:degree)
+	double converge_t_; //convergence condition in translation (unit:m)
+	double converge_r_; //convergence condition in rotation    (unit:degree)
 
-	float adjustweight_step;  //Weight adjustment for one iteration (0.1)
-	float adjustweight_ratio; //Weight would be adjusted if the IoU between expected value and calculated value is beyond this value (1.2)
+	float adjustweight_step_;  //Weight adjustment for one iteration (0.1)
+	float adjustweight_ratio_; //Weight would be adjusted if the IoU between expected value and calculated value is beyond this value (1.1)
 
-	double gt_maxdis; //ground truth max distance for correspondence keypoint pair
-
-	double PCFD; //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
-
-	Eigen::Matrix4d Rt_tillnow;
-	Eigen::Matrix4d Rt_gt; //ground truth Rt matrix
-
-	std::vector<std::vector<int>> matchlist; //Source Point Cloud match result for every iteration
-	std::vector<int> gtmatchlist;			 //Ground truth match result for Source Point Cloud
-
-	//save Target point cloud coordinates
-	Eigen::Matrix4Xd skP, sfP, sP; //Source keypoints, Source downsampled points, Source full points (after temp transformation)
-	Eigen::Matrix4Xd tkP;		   //Target keypoints
-
-	//save energy,RMS before & after transformation, correspondence number, correspondence precision and recall of each iteration for displaying
-	std::vector<double> energy, rmse, rmseafter, pre, rec;
-	std::vector<int> cor;
-
-  protected:
-  private:
-	Keypoints KP;
-	Energyfunction EF;
-	Eigen::MatrixX3d Spoint, Tpoint;
+	float estimated_IoU_;
 };
 
 } // namespace ghicp
