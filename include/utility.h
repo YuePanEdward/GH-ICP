@@ -13,6 +13,10 @@
 #include <pcl/impl/point_types.hpp>
 #include <pcl/impl/pcl_base.hpp>
 
+//Eigen
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 #include <vector>
 #include <list>
 
@@ -44,6 +48,23 @@ typedef pcl::PointCloud<pcl::FPFHSignature33> fpfhFeature;
 
 namespace ghicp
 {
+
+enum FeatureType
+{
+    BSC,
+	RoPS,
+	FPFH,
+	None
+};
+
+enum CorrespondenceType
+{
+	NN,
+	NNR,
+	KM
+};
+
+
 struct CenterPoint 
 {
 	double x;

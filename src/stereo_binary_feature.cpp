@@ -1,4 +1,4 @@
-#include "StereoBinaryFeature.h"
+#include "stereo_binary_feature.h"
 
 
 namespace ghicp

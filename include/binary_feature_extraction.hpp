@@ -1,7 +1,7 @@
 #ifndef _INCLUDE_BINARY_FEATRUE_EXTRACTION_HPP
 #define _INCLUDE_BINARY_FEATRUE_EXTRACTION_HPP
 
-#include "StereoBinaryFeature.h"
+#include "stereo_binary_feature.h"
 
 #include <iostream>
 #include <vector>

@@ -614,7 +614,7 @@ class DataIo
 		{
 			TXYZ.row(i) << Target_FPC->points[Target_KPI->indices[i]].x, Target_FPC->points[Target_KPI->indices[i]].y, Target_FPC->points[Target_KPI->indices[i]].z;
 		}
-		std::cout << "Key points saved" << std::endl;
+		std::cout << "Key points saved." << std::endl;
 		return 1;
 	}
 

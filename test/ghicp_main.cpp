@@ -2,8 +2,10 @@
 #include <fstream>
 #include "dataio.hpp"
 #include "filter.hpp"
-#include "keypointdetect.hpp"
-#include "BinaryFeatureExtraction.hpp"
+#include "keypoint_detect.hpp"
+#include "binary_feature_extraction.hpp"
+#include "registration.h"
+#include "utility.h"
 
 using namespace ghicp;
 
@@ -15,14 +17,18 @@ int main(int argc, char **argv)
     std::string filenameS = argv[2]; //Source pointcloud file path
     std::string filenameR = argv[3]; //Registered source pointcloud file path
 
-    std::string use_feature = argv[4]; //BSC(B), FPFH(F)
+    std::string use_feature = argv[4]; //BSC(B), FPFH(F), RoPS(R), None(N)
     char using_feature = use_feature.c_str()[0];
+	std::string corres_estimation_method = argv[5]; //KM(K), NN(N), NNR(R)
+    char corres_estimation = corres_estimation_method.c_str()[0];
 
-    float resolution = atof(argv[5]); //control the subsampling scale (unit:m) ; //0.04f for TLS //0.00025f for bunny
-    float neighborhood_radius = atof(argv[6]);
-    float curvature_non_max_radius = atof(argv[7]);
+    float resolution = atof(argv[6]); //control the subsampling scale (unit:m) ; //0.04f for TLS //0.00025f for bunny
+    float neighborhood_radius = atof(argv[7]);
+    float curvature_non_max_radius = atof(argv[8]); 
+    float weight_adjustment_ratio = atof(argv[9]);  //(Weight would be adjusted if the IoU between expected value and calculated value is beyond this value)  
+	float weight_adjustment_step = atof(argv[10]);  //(Weight adjustment for one iteration) 
 
-    float estimated_IoU = atof(argv[8]);
+    float estimated_IoU = atof(argv[11]);
 
     DataIo<Point_T> dataio;
     pcl::PointCloud<Point_T>::Ptr pointCloudT(new pcl::PointCloud<Point_T>()), pointCloudS(new pcl::PointCloud<Point_T>());
@@ -34,12 +40,18 @@ int main(int argc, char **argv)
     pcl::PointCloud<Point_T>::Ptr pointCloudT_down(new pcl::PointCloud<Point_T>()), pointCloudS_down(new pcl::PointCloud<Point_T>());
     cfilter.voxelfilter(pointCloudT, pointCloudT_down, resolution);
     cfilter.voxelfilter(pointCloudS, pointCloudS_down, resolution);
+	Bounds s_cloud_bbx;
+    cfilter.getCloudBound(*pointCloudS_down,s_cloud_bbx);
+    float bbx_magnitude=s_cloud_bbx.max_x-s_cloud_bbx.min_x+s_cloud_bbx.max_y-s_cloud_bbx.min_y+s_cloud_bbx.max_z-s_cloud_bbx.min_z;
 
     CKeypointDetect<Point_T> ckpd(neighborhood_radius, 0.8, 20, curvature_non_max_radius);
 
     pcl::PointIndicesPtr keyPointIndicesT, keyPointIndicesS;
     ckpd.keypointDetectionBasedOnCurvature(pointCloudT_down, keyPointIndicesT);
     ckpd.keypointDetectionBasedOnCurvature(pointCloudS_down, keyPointIndicesS);
+	
+	Eigen::MatrixX3d kpSXYZ,kpTXYZ;	
+	dataio.savecoordinates(pointCloudS_down, pointCloudT_down, keyPointIndicesS, keyPointIndicesT, kpSXYZ, kpTXYZ);
 
     switch (using_feature)
     {
@@ -63,15 +75,16 @@ int main(int argc, char **argv)
         return 0;
     }
     }
+    
+    int nkps=keyPointIndicesS->indices.size();
+	int nkpt=keyPointIndicesT->indices.size();
+    GHRegistration ghreg(nkps,  nkpt, kpSXYZ, kpTXYZ,
+				    bbx_magnitude,curvature_non_max_radius, weight_adjustment_ratio, weight_adjustment_step);
+	
+    
 
 #if 0
-    if (io.paralist.feature == 1)
-    {
-
-        //t5 = clock();
-        //cout << "Time for BSC feature calculation: " << float(t5 - t4) / CLOCKS_PER_SEC << " s" << endl
-        //		<< "-----------------------------------------------------------------------------" << endl;
-    }
+   
 
     /*---------------------- 4.(2) Feature calculation FPFH--------------------------*/
     FPFHfeature fpfh;
@@ -91,50 +104,6 @@ int main(int argc, char **argv)
     }
 
     /*----------------------- 5. Registration-------------------------*/
-	Keypoints Kp;
-	Kp.kps_num = keyPointIndicesS->indices.size();
-	Kp.kpt_num = keyPointIndicesT->indices.size();
-	Kp.kpSXYZ = kpSXYZ;
-	Kp.kpTXYZ = kpTXYZ;
-
-	Energyfunction Ef;
-	Ef.ED.resize(Kp.kps_num, vector<double>(Kp.kpt_num));
-	Ef.FD.resize(Kp.kps_num, vector<double>(Kp.kpt_num));
-	Ef.CD.resize(Kp.kps_num, vector<double>(Kp.kpt_num));
-	
-	//Define penalty parameters
-	Ef.penalty_initial = io.paralist.p_pre;    // initial penalty for FD (mean-k*std)
-	Ef.para1_penalty   = io.paralist.p_ED;     // for ED penalty estimation
-	Ef.para2_penalty   = io.paralist.p_FD;     // for FD penalty estimation
-	
-	//other parameters
-	Ef.min_cor    = 10;                        // min keypoint pairs for registration
-	Ef.m          = io.paralist.iter_speed;    // ED,FD weight changing parameter 
-	Ef.KM_eps     = io.paralist.kmeps;         // KM's parameter (Smaller eps, longer consuming time) 
-	Ef.usefeature = io.paralist.feature;
-	Ef.k          = io.paralist.scale;
-
-	Registration Reg(Kp, Ef, 0, 0);
-	// FPFH_SAC
-	//Reg.Reg_FPFHSAC(filterPointCloudS, filterPointCloudT);
-	// 3D NDT
-	//Reg.Reg_3DNDT(filterPointCloudS, filterPointCloudT);
-
-	//Initialization
-	Reg.Rt_tillnow = Eigen::Matrix4d::Identity();
-    Reg.converge = 0;
-	Reg.nonmax = kpOption.radiusNonMax;
-	Reg.index_output = 0;
-	Reg.RMS = 1000.0;
-	Reg.iteration_number = 0; 
-    Reg.matchlist.resize(Kp.kps_num, vector<int>(200));
-	Reg.gt_maxdis = kpOption.radiusNonMax/3;
-	
-	//Weight adjustment and convergence condition
-	Reg.adjustweight_ratio = io.paralist.weight_adjustment_ratio;
-	Reg.adjustweight_step = io.paralist.weight_adjustment_step;
-	Reg.converge_t = io.paralist.converge_t;
-	Reg.converge_r = io.paralist.converge_r;
 
 	//save SP ,SFP ,SKP and TKP
 	Reg.save(filterPointCloudS, pointCloudS, kpSXYZ, kpTXYZ);
