@@ -9,8 +9,6 @@ Two key innovative points over ICP are:
 
 The earlier conference version of GH-ICP is called Iterative Global Similarity Point (IGSP).
 
-After the conference, we have improved the original algorithm on its efficiency and robustness. Besides, we've done more experiments on more datasets. 
-
 To highlight two key innovative points of the algorithm, we renamed IGSP as GH-ICP.
 
  ![alt text](img/GH-ICPworkflow.jpg)
@@ -29,8 +27,6 @@ If you find our work useful in your research, please consider citing:
           year={2018}
         }
 
-### [Poster](https://github.com/YuePanEdward/YuePanEdward.github.io/blob/master/assets/3DVposter.pdf)
-
 ### original version available on Windows.
 Compiled with Visual Studio 12 2013 Win64 Release / Debug Passed, see [former release](https://github.com/YuePanEdward/GH-ICP/releases)
 
@@ -39,7 +35,13 @@ Compiled with Visual Studio 12 2013 Win64 Release / Debug Passed, see [former re
 
 ### How to use 
 
-1. Compile
+
+1. Install dependent 3rd libraries 
+
+[PCL(>=1.7)](https://github.com/PointCloudLibrary/pcl), [LibLas(Optional for las data IO)](https://github.com/libLAS/libLAS)
+
+
+2. Compile
 ```
 mkdir build
 cd build
@@ -47,73 +49,66 @@ cmake ..
 make 
 ```
 
-2. Run
+3. Run
 ```
 cd ..
 # configure the script/run.sh file for editting the data path and key parameters
 sh script/run.sh
 ```
 
+4. Parameter configuration 
 
-
-#### Parameter list 
-Take the TLS (outdoor buildings) registration parameter setting as an example.
 ```
-0.05
-1.5
-0.6
-0.6
-30
-1
-2.5
-1.0
-1.0
-6
-0.01
-1.1
-0.1
-0.01
-0.01
-1
-1
-0
+#./script/run.sh
+
+#parameters setting example for large scale (100m+) TLS data
+using_feature=B;              # Feature selection [ B: BSC, F: FPFH, R: RoPS, N: register without feature ]
+corres_estimation_method=K;   # Correspondence estimation by [ K: Bipartite graph min weight match using KM, N: Nearest Neighbor, R: Reciprocal NN ]
+
+downsample_resolution=0.2;    # Raw data downsampling voxel size, just keep one point in the voxel  
+neighborhood_radius=0.6;      # Curvature estimation / feature encoding radius
+curvature_non_max_radius=1.8; # Keypoint extraction based on curvature: non max suppression radius 
+weight_adjustment_ratio=1.1;  # Weight would be adjusted if the IoU between expected value and calculated value is beyond this value
+weight_adjustment_step=0.1;   # Weight adjustment for one iteration
+
+appro_overlap_ratio=0.7;      # Estimated approximate overlapping ratio of two point cloud 
 ```
 
-#### Notification
+5. Data preparation
+
+You can test on the online available point cloud data and registration dataset such as [Robotic 3D Scan Repository](http://kos.informatik.uni-osnabrueck.de/3Dscans/), [ETH PRS Registration Dataset](https://prs.igp.ethz.ch/research/completed_projects/automatic_registration_of_point_clouds.html), [ETH ASL Registration Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=laserregistration:laserregistration), etc. 
+
+You may apply the [format transform tool](https://github.com/YuePanEdward/Pointcloud_Format_Transformer) to get the data ready for registration.
+
+You can also use your own data and edit the data path in the shell file. Four formats of point cloud data are available (*.pcd, *.las, *.ply, *.txt) for IO.
+
 ```
-1  resolution of voxel downsampling (unit:m)
-2  [key parameter] keypoint_non_max_r (unit:m) (Keypoint detection's non-max supression value)  
-3  feature_r (feature calulation radius, unit:m) 
-4  [key parameter] keypoint_max_ratio (the max curvature for keypoint detection, the larger this value is, the more keypoints would be)
-5  keypoint_min_num (the minimum surrounding points for keypoint detection)
-6  scale (a scale parameter to balance Euclidean and Feature distance. For example, if actual Euclidean distance between two points is d1, then the distance used to calculate energy function would be d1*scale)
-7  penalty_pre (the first weight paramter p1 in the original paper, the larger this value is, the less points would be matched at the very beginning)
-8  penalty_ED (the second weight paramter p2 in the original paper, the smaller this value is, the less points would be matched)
-9  penalty_FD (the third weight paramter p3 in the original paper, the smaller this value is, the less points would be matched)
-10  m (the iteration rate parameter which control the changing rate of the weight of Euclidean and Feature Distance)
-11 km-eps (the terminal threshold of KM algorithm, the larger this value is, the quicker the algorithm would be. However, if this value is too large, the accuracy of this algorithm would be sacrificed)
-12 weight_adjustment_ratio (Weight would be adjusted if the IoU between expected value and calculated value is beyond this value)   
-13 weight_adjustment_step (Weight adjustment for one iteration) 
-14 converge_t  (the iterative termination condition for translation, unit: m)
-15 converge_r  (the iterative termination condition for rotation, unit: degree. Only when these two conditions are met at the same time， the algorithm would be seemed as converged)
-16 [key parameter] match method (If this value is 1, KM algorithm would be adopted to calculate the correspondence. If this value is 0, traditional nearest neighbor would be used)
-17 [key parameter] feature option (If this value is 1, BSC[1] feature would be extracted and used for the feature distance calculation. If this value is 2, FPFH feature would be extracted and used for the feature distance calculation. If this value is 0, this algorithm would not consider the hybrid metrics and directly use Euclidean metrics instead.)
-18 output or not output (If this value is 1, then the point cloud of every four iterations would be output. Or there would be no output except for the last one)
+#./script/run.sh
+
+#data path
+target_point_cloud_path=...
+source_point_cloud_path=...
+output_point_cloud_path=...
+
 ```
 
-#### Tips
+6. Analysis
+Some other well-known automatic registration algorithms are also provided in this repo. and you may apply them as reference.
 
-1. You can choose from GH-ICP,G-ICP,H-ICP,Classic-ICP.
-```
-GH-ICP: parameter16 = 1 parameter17 = 1 or 2
-H-ICP: parameter16 = 0 parameter17 = 1 or 2
-G-ICP: parameter16 = 1 parameter17 = 0
-Classic ICP: parameter16 = 0 parameter17 = 0
-```   
-   According to the experiments, GH-ICP has the best accuracy, robustness and applicability. However its limited efficiency o(n^3) make it not suitable for engineering application. Then you can choose to use H-ICP, which is faster o(n^2) but less robust.
 
 #### Other Reference
 
+If you find the Binary Shape Context (BSC) feature used in this repo. useful in your research, please consider citing:
+
 ```
-[1]BSC feature: Please refer to our previous article：Dong, Z., Yang, B., Liu, Y., Liang, F., Li, B., & Zang, Y., 2017. A novel binary shape context for 3d local surface description. Isprs Journal of Photogrammetry & Remote Sensing, 130, 431-452.
+@article{dong2017novel,
+  title={A novel binary shape context for 3D local surface description},
+  author={Dong, Zhen and Yang, Bisheng and Liu, Yuan and Liang, Fuxun and Li, Bijun and Zang, Yufu},
+  journal={ISPRS Journal of Photogrammetry and Remote Sensing},
+  volume={130},
+  pages={431--452},
+  year={2017},
+  publisher={Elsevier}
+}
 ```
+
