@@ -1,5 +1,5 @@
-#ifndef _INCLUDE_REGISTRATION_H_
-#define _INCLUDE_REGISTRATION_H_
+#ifndef _INCLUDE_GHICP_REG_H_
+#define _INCLUDE_GHICP_REG_H_
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -8,6 +8,7 @@
 #include "utility.h"
 #include "km.h"
 #include "stereo_binary_feature.h"
+#include "fpfh.hpp"
 
 namespace ghicp
 {
@@ -110,9 +111,9 @@ class GHRegistration
 
 	bool calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
 	bool cal_recall_precision();
-
+    
 	double calCloudFeatureDistance(int cor_num);
-
+    
 	double gt_maxdis; //ground truth max distance for correspondence keypoint pair
 
 	double PCFD; //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
@@ -181,7 +182,7 @@ class GHRegistration
 
 } // namespace ghicp
 
-#endif //_INCLUDE_REGISTRATION_H_
+#endif //_INCLUDE_GHICP_REG_H_
 
 #if 0
     bool displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4Xd &TP);

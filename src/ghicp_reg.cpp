@@ -3,8 +3,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "km.h"
-#include "registration.h"
+#include "ghicp_reg.h"
 #include "utility.h"
 
 #include <boost/filesystem.hpp>
@@ -31,7 +30,7 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 		calFD_BSC();
 		break;
 	case FPFH:
-		//calFD_FPFH();
+		calFD_FPFH();
 		break;
 	default:
 		break;
@@ -188,10 +187,10 @@ bool GHRegistration::calFD_BSC()
 	return 1;
 }
 
-#if 0
+
 bool GHRegistration::calFD_FPFH()
 {
-	FPFHfeature fpfhcal;
+	FPFHfeature <pcl::PointXYZ> fpfhcal(1.0);
 	for (size_t i = 0; i < KP.kps_num; ++i)
 	{
 		for (size_t j = 0; j < KP.kpt_num; ++j)
@@ -202,7 +201,7 @@ bool GHRegistration::calFD_FPFH()
 	//cout << "FD calculation completed." << endl;
 	return 1;
 }
-#endif
+
 
 bool GHRegistration::calCD_NF()
 {

@@ -4,8 +4,10 @@
 #include "filter.hpp"
 #include "keypoint_detect.hpp"
 #include "binary_feature_extraction.hpp"
-#include "registration.h"
+#include "cloud_viewer.hpp"
+#include "ghicp_reg.h"
 #include "utility.h"
+
 
 using namespace ghicp;
 
@@ -65,7 +67,7 @@ int main(int argc, char **argv)
     match_feature_type(use_feature.c_str()[0], Ft);
     match_corres_type(corres_estimation_method.c_str()[0], Ct);
 
-	float resolution = atof(argv[6]); //control the subsampling scale (unit:m) ; //0.04f for TLS //0.00025f for bunny
+	float resolution = atof(argv[6]); //control the subsampling scale (unit:m); 
 	float neighborhood_radius = atof(argv[7]);
 	float curvature_non_max_radius = atof(argv[8]);
 	float weight_adjustment_ratio = atof(argv[9]); //(Weight would be adjusted if the IoU between expected value and calculated value is beyond this value)
@@ -112,9 +114,19 @@ int main(int argc, char **argv)
 		Kp.setBSCfeature(bscS, bscT);
 		break;
 	}
-	case FPFH: //Use FPFH feature
-	{		  //fm.detectFeaturesORB(frames[i], feature_extract_parameter);
-		std::cout << "Not ready yet" << std::endl;
+	case FPFH:   //Use FPFH feature
+	{   
+		FPFHfeature<Point_T> fpfh(curvature_non_max_radius);
+		fpfhFeaturePtr fpfhT(new fpfhFeature), fpfhS(new fpfhFeature),fpfhT_k(new fpfhFeature), fpfhS_k(new fpfhFeature);
+        fpfh.compute_fpfh_feature(pointCloudT_down,fpfhT);
+		fpfh.compute_fpfh_feature(pointCloudS_down,fpfhS);
+		fpfh.keyfpfh(fpfhS, fpfhT, keyPointIndicesS, keyPointIndicesT, fpfhS_k, fpfhT_k);
+		Kp.setFPFHfeature(fpfhS_k, fpfhT_k);
+		break;
+	}
+	case RoPS:
+	{
+		std::cout << "Not passed yet." << std::endl;
 		break;
 	}
 	default:
@@ -128,8 +140,15 @@ int main(int argc, char **argv)
 	Ef.init(nkps, nkpt, bbx_magnitude);
 
 	GHRegistration ghreg(Kp,Ef,Ft,Ct,curvature_non_max_radius, weight_adjustment_ratio, weight_adjustment_step, estimated_IoU);
-    Eigen::Matrix4d Rt_final;
+    Eigen::Matrix4d Rt_final;  //transformation matrix from Source to Target Point Cloud
 	ghreg.ghicp_reg(Rt_final);
+    
+    pcl::PointCloud<Point_T>::Ptr pointCloudS_reg(new pcl::PointCloud<Point_T>());
+	
+	Eigen::Matrix4f Rt_final_f=Rt_final.template cast<float>();
+	cfilter.transformcloud(pointCloudS,pointCloudS_reg,Rt_final_f);
+
+	dataio.writeCloudFile(filenameR,pointCloudS_reg);
 
     return 0;
 }

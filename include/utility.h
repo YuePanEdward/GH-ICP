@@ -13,11 +13,12 @@
 #include <pcl/impl/point_types.hpp>
 #include <pcl/impl/pcl_base.hpp>
 
-
-
 #include <vector>
 #include <list>
 
+//Max and Min
+#define max_(a, b) (((a) > (b)) ? (a) : (b))
+#define min_(a, b) (((a) < (b)) ? (a) : (b))
 
 //TypeDef
 typedef pcl::PointCloud<pcl::PointXYZI>::Ptr pcXYZIPtr;
@@ -49,7 +50,7 @@ namespace ghicp
 
 enum FeatureType
 {
-    BSC,
+	BSC,
 	RoPS,
 	FPFH,
 	None
@@ -62,8 +63,7 @@ enum CorrespondenceType
 	KM
 };
 
-
-struct CenterPoint 
+struct CenterPoint
 {
 	double x;
 	double y;
@@ -75,7 +75,7 @@ struct CenterPoint
 	}
 };
 
-struct Bounds 
+struct Bounds
 {
 	double min_x;
 	double min_y;
@@ -198,6 +198,40 @@ class CloudUtility
 			temp_cloud->push_back(cloud->points[index[i]]);
 		}
 		getCloudBound(*temp_cloud, bound);
+	}
+
+	/**
+* \brief Transform a Point Cloud using a given transformation matrix
+* \param[in]  Cloud : A pointer of the Point Cloud before transformation
+* \param[out] TransformedCloud : A pointer of the Point Cloud after transformation
+* \param[in]  transformation : A 4*4 transformation matrix
+*/
+
+	void transformcloud(typename pcl::PointCloud<PointT>::Ptr &Cloud,
+						typename pcl::PointCloud<PointT>::Ptr &TransformedCloud,
+						Eigen::Matrix4f &transformation)
+	{
+		Eigen::Matrix4Xf PC;
+		Eigen::Matrix4Xf TPC;
+		PC.resize(4, Cloud->size());
+		TPC.resize(4, Cloud->size());
+		for (int i = 0; i < Cloud->size(); i++)
+		{
+			PC(0, i) = Cloud->points[i].x;
+			PC(1, i) = Cloud->points[i].y;
+			PC(2, i) = Cloud->points[i].z;
+			PC(3, i) = 1;
+		}
+		TPC = transformation * PC;
+		for (int i = 0; i < Cloud->size(); i++)
+		{
+			PointT pt;
+			pt.x = TPC(0, i);
+			pt.y = TPC(1, i);
+			pt.z = TPC(2, i);
+			TransformedCloud->points.push_back(pt);
+		}
+		std::cout << "Transform done ..." << std::endl;
 	}
 
   protected:

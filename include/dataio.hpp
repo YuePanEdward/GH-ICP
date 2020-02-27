@@ -20,7 +20,7 @@ namespace ghicp
 {
 
 template <typename PointT>
-class DataIo
+class DataIo : public CloudUtility<PointT>
 {
   public:
 	bool readCloudFile(const std::string &fileName, const typename pcl::PointCloud<PointT>::Ptr &pointCloud)
@@ -223,7 +223,7 @@ class DataIo
 	{
 
 		Bounds bound;
-		getCloudBound(*pointCloud, bound);
+		this->getCloudBound(*pointCloud, bound);
 
 		std::ofstream ofs;
 		ofs.open(fileName.c_str(), std::ios::out | std::ios::binary);
@@ -364,7 +364,7 @@ class DataIo
 		global_shift.resize(3);
 
 		Bounds bound;
-		getCloudBound(*pointCloud, bound);
+		this->getCloudBound(*pointCloud, bound);
 
 		if (!automatic_shift_or_not)
 		{

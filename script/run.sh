@@ -1,10 +1,7 @@
 #data path
-#target_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/s1.pcd;
-#source_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/s2.pcd;
-#output_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/reg_s2.pcd;
-target_point_cloud_path=/home/edward/testdata/building1.pcd
-source_point_cloud_path=/home/edward/testdata/building2.pcd
-output_point_cloud_path=/home/edward/testdata/building2_reg.pcd
+target_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/s1.pcd;
+source_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/s2.pcd;
+output_point_cloud_path=/media/edward/BackupPlus/Data/ETH_registration_TLS/arch/PointCloud_pcd/reg_s2.pcd;
 
 #parameters
 using_feature=B;              # Feature selection [ B: BSC, F: FPFH, R: RoPS, N: register without feature ]
