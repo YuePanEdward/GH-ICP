@@ -39,7 +39,7 @@ class CloudViewer
     ~CloudViewer(){};
 
     void Dispaly2Cloud(const typename pcl::PointCloud<PointT>::Ptr &Cloud1, const typename pcl::PointCloud<PointT>::Ptr &Cloud2,
-                          std::string displayname, int display_downsample_ratio)
+                       std::string displayname, int display_downsample_ratio)
     {
         boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
 
@@ -170,8 +170,9 @@ class CloudViewer
         }
 
         bool intensity_available = pcl::traits::has_field<PointT, pcl::fields::intensity>::value;
-        if (Cloud_T->points[0].intensity<0.001) intensity_available=0;
-        
+        if (Cloud_T->points[0].intensity < 0.001)
+            intensity_available = 0;
+
         char t[256];
         std::string s;
         int n = 0;
@@ -190,7 +191,7 @@ class CloudViewer
                 pt.z = Cloud_T->points[i].z;
 
                 if (intensity_available)
-                    intensity_ratio = Cloud_T->points[i].intensity / 255.0;
+                    intensity_ratio = 1.0 * Cloud_T->points[i].intensity;
                 else
                     intensity_ratio = 1.0;
 
@@ -213,10 +214,10 @@ class CloudViewer
                 pt.z = Cloud_S->points[i].z;
 
                 if (intensity_available)
-                    intensity_ratio = Cloud_S->points[i].intensity / 255.0;
+                    intensity_ratio = 1.0 * Cloud_S->points[i].intensity;
                 else
                     intensity_ratio = 1.0;
-                
+
                 pt.r = 255 * intensity_ratio;
                 pt.g = 215 * intensity_ratio;
                 pt.b = 0 * intensity_ratio;

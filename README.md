@@ -11,11 +11,21 @@ The earlier conference version of GH-ICP is called Iterative Global Similarity P
 
 To highlight two key innovative points of the algorithm, we renamed IGSP as GH-ICP.
 
- ![alt text](img/gh-icp.gif)
+### Demo
+
+##### ETH TLS Dataset
+ ![alt text](img/demo_2.gif)
+
+##### WHU TLS Dataset
+ ![alt text](img/demo_1.gif)
+
+##### More
+ ![alt text](img/showresult2.jpg)
+
+### Principle
 
  ![alt text](img/GH-ICPworkflow.jpg)
  
- ![alt text](img/showresult2.jpg)
  
 ### [Paper](https://ieeexplore.ieee.org/abstract/document/8490968) 
 
@@ -28,11 +38,11 @@ If you find our work useful in your research, please consider citing:
           year={2018}
         }
 
-### original version available on Windows.
+#### original version available on Windows.
 Compiled with Visual Studio 12 2013 Win64 Release / Debug Passed, see [former release](https://github.com/YuePanEdward/GH-ICP/releases)
 
 
-### under code refactoring
+#### now available on Linux (passed on ubuntu 16.04)
 
 ### How to use 
 
@@ -66,9 +76,9 @@ sh script/run.sh
 using_feature=B;              # Feature selection [ B: BSC, F: FPFH, R: RoPS, N: register without feature ]
 corres_estimation_method=K;   # Correspondence estimation by [ K: Bipartite graph min weight match using KM, N: Nearest Neighbor, R: Reciprocal NN ]
 
-downsample_resolution=0.2;    # Raw data downsampling voxel size, just keep one point in the voxel  
-neighborhood_radius=0.6;      # Curvature estimation / feature encoding radius
-curvature_non_max_radius=1.8; # Keypoint extraction based on curvature: non max suppression radius 
+downsample_resolution=0.1;    # Raw data downsampling voxel size, just keep one point in the voxel  
+neighborhood_radius=0.5;      # Curvature estimation / feature encoding radius
+curvature_non_max_radius=1.5; # Keypoint extraction based on curvature: non max suppression radius 
 weight_adjustment_ratio=1.1;  # Weight would be adjusted if the IoU between expected value and calculated value is beyond this value
 weight_adjustment_step=0.1;   # Weight adjustment for one iteration
 registration_dof=6;           # Degree of freedom of the transformation [ 4: TLS with leveling, 6: arbitary ]
