@@ -17,7 +17,6 @@ To highlight two key innovative points of the algorithm, we renamed IGSP as GH-I
  
 ### [Paper](https://ieeexplore.ieee.org/abstract/document/8490968) 
 
-### Citation
 If you find our work useful in your research, please consider citing:
         
         @INPROCEEDINGS{yue2018igsp,    
@@ -76,7 +75,7 @@ appro_overlap_ratio=0.7;      # Estimated approximate overlapping ratio of two p
 
 5. Data preparation
 
-You can test on the online available point cloud data and registration dataset such as [Robotic 3D Scan Repository](http://kos.informatik.uni-osnabrueck.de/3Dscans/), [ETH PRS Registration Dataset](https://prs.igp.ethz.ch/research/completed_projects/automatic_registration_of_point_clouds.html), [ETH ASL Registration Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=laserregistration:laserregistration), etc. 
+You can test on the online available point cloud data and registration dataset such as [Robotic 3D Scan Repository](http://kos.informatik.uni-osnabrueck.de/3Dscans/), [ETH PRS Registration Dataset](https://prs.igp.ethz.ch/research/completed_projects/automatic_registration_of_point_clouds.html), [ETH ASL Registration Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=laserregistration:laserregistration), [3D Match](http://3dmatch.cs.princeton.edu/), etc. 
 
 You may apply the [format transform tool](https://github.com/YuePanEdward/Pointcloud_Format_Transformer) to get the data ready for registration.
 
