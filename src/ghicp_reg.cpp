@@ -28,8 +28,8 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> reg_viewer(new pcl::visualization::PCLVisualizer("Registration viewer"));
 	reg_viewer->setBackgroundColor(255, 255, 255);
-    
-	viewer.displayRegistration_on_fly(reg_viewer, pointCloudS_, pointCloudT_, 10, 1000);
+
+	int downsample_rate_in_process = 5;
 
 	//Calculate Feature Distance
 	switch (Ft_)
@@ -43,6 +43,9 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 	default:
 		break;
 	}
+    
+	if (launch_viewer_)
+		viewer.displayRegistration_on_fly(reg_viewer, pointCloudS_, pointCloudT_, 1, 5000);
 
 	while (!converge)
 	{
@@ -94,15 +97,17 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 
 		pcl::transformPointCloud(*pointCloudS_, *pointCloudStemp_, Rt_tillnow.template cast<float>());
 
-		viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, 10, 200);
+		if (launch_viewer_)
+			viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, downsample_rate_in_process, 100);
 
 		iteration_number++;
 	}
 	Rt_final = Rt_tillnow;
 	cout << "Final transformation matrix:" << endl
 		 << Rt_final << endl;
-    
-    viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, 1, 3000);
+
+	if (launch_viewer_)
+		viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, 1, 2000);
 
 	return 1;
 }
@@ -133,6 +138,9 @@ bool GHRegistration::calED()
 	}//ED OK*/
 	return 1;
 }
+
+// For target point cloud, only 1 feature vector (coordinate system) for 1 keypoint
+// For source point cloud, 4 [6DOF case], 2 [4DOF case] feature vector (coordinate system) for 1 keypoint
 bool GHRegistration::calFD_BSC()
 {
 
@@ -168,8 +176,11 @@ bool GHRegistration::calFD_BSC()
 	{
 		for (size_t j = 0; j < KP.kpt_num; ++j)
 		{
-			EF.FD[i][j] = min(min(sbf0.hammingDistance(bscS[0][i], bscT[0][j]), sbf0.hammingDistance(bscS[0][i], bscT[1][j])),
-							  min(sbf0.hammingDistance(bscS[1][i], bscT[0][j]), sbf0.hammingDistance(bscS[1][i], bscT[1][j])));
+			if (use_6dof_case_)
+				EF.FD[i][j] = min(min(sbf0.hammingDistance(bscS[0][i], bscT[0][j]), sbf0.hammingDistance(bscS[1][i], bscT[0][j])),
+								  min(sbf0.hammingDistance(bscS[2][i], bscT[0][j]), sbf0.hammingDistance(bscS[3][i], bscT[0][j])));
+			else
+				EF.FD[i][j] = min(sbf0.hammingDistance(bscS[0][i], bscT[0][j]), sbf0.hammingDistance(bscS[1][i], bscT[0][j]));
 
 			//if (EF.FD[i][j] < minFD) minFD = EF.FD[i][j];
 			//if (EF.FD[i][j] > maxFD) maxFD = EF.FD[i][j];
@@ -226,7 +237,7 @@ bool GHRegistration::calCD_NF()
 		EF.penalty = CDmean / EF.penalty_initial;
 	}
 
-	EF.penalty = max(CDmean, 5.0);
+	EF.penalty = max(CDmean, 1.0);
 
 	cout << "CDmean: " << CDmean << "  penalty:" << EF.penalty << endl;
 	return 1;
@@ -647,7 +658,7 @@ bool GHRegistration::findcorrespondenceNNR()
 			TP.push_back(SV[i]);
 			cor_number++;
 
-			cout << SP[cor_number - 1] << " - " << TP[cor_number - 1] << endl;
+			//cout << SP[cor_number - 1] << " - " << TP[cor_number - 1] << endl;
 		}
 	}
 
@@ -875,11 +886,6 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 		converge = 1;
 	}*/
 
-	if (abs(dx) < converge_t_ && abs(dy) < converge_t_ && abs(dz) < converge_t_ && abs(ax) < converge_r_ && abs(ay) < converge_r_ && abs(az) < converge_r_) //converge condition
-	{
-		converge = 1;
-	}
-
 	//Update
 	double RMSEafter = 0;
 	for (int i = 0; i < KP.kps_num; i++)
@@ -899,10 +905,19 @@ bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
 	cout << "RMSE after transformation: " << RMSEafter << endl;
 
 	rmseafter.push_back(RMSEafter);
+
+	if (abs(dx) < converge_t_ && abs(dy) < converge_t_ &&
+		abs(dz) < converge_t_ && abs(ax) < converge_r_ &&
+		abs(ay) < converge_r_ && abs(az) < converge_r_) //converge condition
+	{
+		converge = 1;
+	}
+	//if (RMSEafter>1.1*rmseafter[iteration_number-1])
+
 	//cout << KP.kpTXYZ << endl;
 	if (converge == 1)
 	{
-		if (RMSEafter < nonmax)
+		if (RMSEafter < 1.5 * nonmax)
 			cout << "Registration Succeed." << endl;
 		else
 			cout << "Registration Failed." << endl;
@@ -1095,7 +1110,7 @@ void Registration::energyRMSoutput(){
 
 
 
-void Registration::calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0)
+void Registration::cal_gt_match(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0)
 {
 	Eigen::Matrix<double, 4, Dynamic> TKP;
 	TKP.resize(4, TKP0.cols());

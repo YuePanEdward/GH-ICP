@@ -38,12 +38,12 @@ class CloudViewer
     };
     ~CloudViewer(){};
 
-    void Dispaly2CloudPcl(const typename pcl::PointCloud<PointT>::Ptr &Cloud1, const typename pcl::PointCloud<PointT>::Ptr &Cloud2,
+    void Dispaly2Cloud(const typename pcl::PointCloud<PointT>::Ptr &Cloud1, const typename pcl::PointCloud<PointT>::Ptr &Cloud2,
                           std::string displayname, int display_downsample_ratio)
     {
         boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
 
-        viewer->setBackgroundColor(0, 0, 0);
+        viewer->setBackgroundColor(255, 255, 255);
         char t[256];
         std::string s;
         int n = 0;
@@ -194,12 +194,12 @@ class CloudViewer
                 else
                     intensity_ratio = 1.0;
 
-                pt.r = 255 * intensity_ratio;
-                pt.g = 215 * intensity_ratio;
-                pt.b = 0 * intensity_ratio;
+                pt.r = 233 * intensity_ratio;
+                pt.g = 233 * intensity_ratio;
+                pt.b = 216 * intensity_ratio;
                 Cloud_T_rgb->points.push_back(pt);
             }
-        } // Golden
+        } // Silver
 
         viewer->addPointCloud(Cloud_T_rgb, "pointcloudT");
 
@@ -216,13 +216,13 @@ class CloudViewer
                     intensity_ratio = Cloud_S->points[i].intensity / 255.0;
                 else
                     intensity_ratio = 1.0;
-
-                pt.r = 233 * intensity_ratio;
-                pt.g = 233 * intensity_ratio;
-                pt.b = 216 * intensity_ratio;
+                
+                pt.r = 255 * intensity_ratio;
+                pt.g = 215 * intensity_ratio;
+                pt.b = 0 * intensity_ratio;
                 Cloud_S_rgb->points.push_back(pt);
             }
-        } // Silver
+        } // Golden
 
         viewer->addPointCloud(Cloud_S_rgb, "pointcloudS");
 

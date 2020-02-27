@@ -11,6 +11,8 @@ The earlier conference version of GH-ICP is called Iterative Global Similarity P
 
 To highlight two key innovative points of the algorithm, we renamed IGSP as GH-ICP.
 
+ ![alt text](img/gh-icp.gif)
+
  ![alt text](img/GH-ICPworkflow.jpg)
  
  ![alt text](img/showresult2.jpg)
@@ -69,8 +71,11 @@ neighborhood_radius=0.6;      # Curvature estimation / feature encoding radius
 curvature_non_max_radius=1.8; # Keypoint extraction based on curvature: non max suppression radius 
 weight_adjustment_ratio=1.1;  # Weight would be adjusted if the IoU between expected value and calculated value is beyond this value
 weight_adjustment_step=0.1;   # Weight adjustment for one iteration
+registration_dof=6;           # Degree of freedom of the transformation [ 4: TLS with leveling, 6: arbitary ]
+appro_overlap_ratio=0.6;      # Estimated approximate overlapping ratio of two point cloud 
 
-appro_overlap_ratio=0.7;      # Estimated approximate overlapping ratio of two point cloud 
+launch_realtime_viewer=1;     # Launch the realtime registration viewer during registration or not (1: Launch, 0: Not launch)
+
 ```
 
 5. Data preparation

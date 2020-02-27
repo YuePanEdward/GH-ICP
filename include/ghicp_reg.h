@@ -37,7 +37,7 @@ struct Energyfunction
 		weight_changing_rate = 6; //ED,FD weight changing parameter
 		KM_eps = 0.01;			  //KM's parameter (Smaller eps, longer consuming time)
 
-		scale = 0.01 * bbx_magnitude;
+		scale = 0.005 * bbx_magnitude;
 	}
 };
 
@@ -75,8 +75,9 @@ class GHRegistration
 {
   public:
 	GHRegistration(Keypoints Kp, Energyfunction Ef, FeatureType Ft, CorrespondenceType Ct,
-				   float radiusNonMax, float weight_adjustment_ratio, float weight_adjustment_step, float estimated_IoU,
-				   float converge_tran = 0.005, float converge_rot = 0.005,
+				   float radiusNonMax, float weight_adjustment_ratio, float weight_adjustment_step,
+				   int dof_type, float estimated_IoU,
+				   float converge_tran = 0.02, float converge_rot = 0.02,
 				   int ite = 0, int ite2 = 0)
 	{
 
@@ -105,41 +106,44 @@ class GHRegistration
 		converge_r_ = converge_rot;
 		estimated_IoU_ = estimated_IoU;
 
+		if (dof_type == 6)
+			use_6dof_case_ = 1;
+		else
+			use_6dof_case_ = 0;
+
 		pointCloudS_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
 		pointCloudStemp_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
 		pointCloudT_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
 	}
 
-	bool set_raw_pointcloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloudS,
+	void set_raw_pointcloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloudS,
 							const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloudT)
 	{
 		pointCloudS_ = pointCloudS;
 		pointCloudT_ = pointCloudT;
-		return 1;
+	}
+
+	void set_viewer(bool launch_viewer)
+	{
+		launch_viewer_ = launch_viewer;
 	}
 
 	//Main entrance
 	bool ghicp_reg(Eigen::Matrix4d &Rt_final);
 
-	bool calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
+	bool cal_gt_match(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
 	bool cal_recall_precision();
-
 	double calCloudFeatureDistance(int cor_num);
 
-	double gt_maxdis; //ground truth max distance for correspondence keypoint pair
-
-	double PCFD; //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
-
-	Eigen::Matrix4d Rt_tillnow; //Temp transformation matrix
-	Eigen::Matrix4d Rt_gt;		//ground truth transformation matrix
-
+	double gt_maxdis;						 //ground truth max distance for correspondence keypoint pair
+	double PCFD;							 //Pairwise Cloud Feature Distance (0-1) used for multi-view registration as weight of MST
+	double RMS;								 //Temp root mean square error
+	Eigen::Matrix4d Rt_tillnow;				 //Temp transformation matrix
+	Eigen::Matrix4d Rt_gt;					 //ground truth transformation matrix
 	std::vector<std::vector<int>> matchlist; //Source Point Cloud match result for every iteration
 	std::vector<int> gtmatchlist;			 //Ground truth match result for Source Point Cloud
 
-	double RMS; //Temp root mean square error
-
 	//save energy,RMS before & after transformation, correspondence number, correspondence precision and recall of each iteration for displaying
-
 	std::vector<double> energy, rmse, rmseafter, pre, rec;
 	std::vector<int> cor;
 
@@ -185,6 +189,8 @@ class GHRegistration
 	bool converge;
 	bool index_output;
 
+	bool use_6dof_case_; //The ground truth transformation is 6 DOF (for the case of TLS with leveling, you can use 4 DOF case, this value would be 0)
+
 	double converge_t_; //convergence condition in translation (unit:m)
 	double converge_r_; //convergence condition in rotation    (unit:degree)
 
@@ -192,6 +198,8 @@ class GHRegistration
 	float adjustweight_ratio_; //Weight would be adjusted if the IoU between expected value and calculated value is beyond this value (1.1)
 
 	float estimated_IoU_;
+
+	bool launch_viewer_;
 };
 
 } // namespace ghicp

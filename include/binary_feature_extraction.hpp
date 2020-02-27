@@ -43,8 +43,8 @@ class BSCEncoder : public StereoBinaryFeature
 	vector<float> side_length_thresh_; //store threshold
 
 	int gridFeatureDimension_;
-	int compairFeatureDimensionInEachPlane_; //dimension of feature comparation on each projected plane;
-	int compairFeatureDimension_;
+	int compareFeatureDimensionInEachPlane_; //dimension of feature comparation on each projected plane;
+	int compareFeatureDimension_;
 
 	// Store the random grid pair
 	vector<pair<int, int>> grid_index_pairs_2d_;
@@ -53,14 +53,12 @@ class BSCEncoder : public StereoBinaryFeature
 	{
 		double point_num;
 		float point_weight;
-		float intensity;
 		float density;
 		float normalized_point_weight;
 		float average_depth;
-		GridVoxel() : point_num(0.0), point_weight(0.0f), intensity(0.0f), density(0.0f),
-					  normalized_point_weight(0.0f), average_depth(0.0f)
-		{
-		}
+		float average_intensity;
+		GridVoxel() : point_num(0.0), point_weight(0.0f), density(0.0f),
+					  normalized_point_weight(0.0f), average_depth(0.0f), average_intensity(0.0f) {}
 	};
 
 	/*Constructor*/
@@ -70,8 +68,8 @@ class BSCEncoder : public StereoBinaryFeature
 	{
 
 		gridFeatureDimension_ = 3 * voxel_side_num_ * voxel_side_num_;
-		compairFeatureDimensionInEachPlane_ = voxel_side_num_ * voxel_side_num_;
-		compairFeatureDimension_ = 6 * compairFeatureDimensionInEachPlane_;
+		compareFeatureDimensionInEachPlane_ = voxel_side_num_ * voxel_side_num_;
+		compareFeatureDimension_ = 6 * compareFeatureDimensionInEachPlane_;
 
 		unit_side_length_ = 2 * extract_radius_ / voxel_side_num_;
 
@@ -85,7 +83,7 @@ class BSCEncoder : public StereoBinaryFeature
 		if (build_sample_pattern)
 		{
 			//Compare grid pair
-			for (int i = 0; i < compairFeatureDimensionInEachPlane_; i++)
+			for (int i = 0; i < compareFeatureDimensionInEachPlane_; i++)
 			{
 				int pair1, pair2;
 				do
@@ -111,7 +109,7 @@ class BSCEncoder : public StereoBinaryFeature
 		else
 		{
 			ifstream fin("sample_pattern.txt");
-			grid_index_pairs_2d_.resize(compairFeatureDimensionInEachPlane_);
+			grid_index_pairs_2d_.resize(compareFeatureDimensionInEachPlane_);
 			for (int i = 0; i < grid_index_pairs_2d_.size(); i++)
 			{
 				fin >> grid_index_pairs_2d_[i].first >> grid_index_pairs_2d_[i].second;
@@ -399,7 +397,7 @@ class BSCEncoder : public StereoBinaryFeature
 	StereoBinaryFeature computeFeatureProjectedGridAndCompareFeature(const vector<GridVoxel> &grid)
 	{
 		float normalized_point_weightT = 0.1;
-		StereoBinaryFeature result_feature(gridFeatureDimension_ + compairFeatureDimension_);
+		StereoBinaryFeature result_feature(gridFeatureDimension_ + compareFeatureDimension_);
 
 		for (int i = 0; i < grid.size(); i++)
 		{
@@ -468,7 +466,7 @@ class BSCEncoder : public StereoBinaryFeature
 	StereoBinaryFeature computeFeatureProjectedGridAndCompareFeature2D(const vector<GridVoxel> &grid)
 	{
 		float normalized_point_weightT = 0.1;
-		StereoBinaryFeature result_feature(gridFeatureDimension_ + compairFeatureDimension_);
+		StereoBinaryFeature result_feature(gridFeatureDimension_ + compareFeatureDimension_);
 		int featureDimenshions = 0;
 
 		for (int i = 0; i < grid.size(); i++)
@@ -603,9 +601,9 @@ class BSCEncoder : public StereoBinaryFeature
 		}
 	}
 
-    //main entrance
+	//main entrance
 	void extractBinaryFeatures(const typename pcl::PointCloud<PointT>::Ptr &input_cloud,
-							   const pcl::PointIndicesPtr &indices,
+							   const pcl::PointIndicesPtr &indices, int dof_type,
 							   doubleVectorSBF &bscFeatures)
 	{
 		size_t feature_num;
@@ -620,8 +618,8 @@ class BSCEncoder : public StereoBinaryFeature
 		}
 
 		//Initialization
-		vector<StereoBinaryFeature> features_coor1(feature_num);
-		vector<StereoBinaryFeature> features_coor2(feature_num);
+		vector<StereoBinaryFeature> features_coor0(feature_num), features_coor1(feature_num),
+			features_coor2(feature_num), features_coor3(feature_num);
 
 		//KD Tree indexing
 		pcl::KdTreeFLANN<PointT> tree;
@@ -644,28 +642,127 @@ class BSCEncoder : public StereoBinaryFeature
 			ptIndex = indices->indices[i];
 			tree.radiusSearch(ptIndex, sqrt(3.0) * extract_radius_, searchIndexes, distances);
 
-			extractBinaryFeatureOfKeypoint(input_cloud, ptIndex, searchIndexes, features); // For each keypoint , extract the features
-			features_coor1[i] = features[0];
-			features_coor2[i] = features[1];
+			extractBinaryFeatureOfKeypoint(input_cloud, ptIndex, searchIndexes, dof_type, features); // For each keypoint , extract the features
 
-			features_coor1[i].keypointIndex_ = i;
-			features_coor2[i].keypointIndex_ = i;
+			features_coor0[i] = features[0];
+			features_coor0[i].keypointIndex_ = i;
+
+			if (dof_type > 0)
+			{
+				features_coor1[i] = features[1];
+				features_coor1[i].keypointIndex_ = i;
+
+				if (dof_type > 4)
+				{
+					features_coor2[i] = features[2];
+					features_coor2[i].keypointIndex_ = i;
+
+					features_coor3[i] = features[3];
+					features_coor3[i].keypointIndex_ = i;
+				}
+			}
 		}
 		//);
 
+		bscFeatures.push_back(features_coor0);
 		bscFeatures.push_back(features_coor1);
 		bscFeatures.push_back(features_coor2);
+		bscFeatures.push_back(features_coor3);
 
+		vector<StereoBinaryFeature>().swap(features_coor0);
 		vector<StereoBinaryFeature>().swap(features_coor1);
-		vector<StereoBinaryFeature>().swap(features_coor2);
+        vector<StereoBinaryFeature>().swap(features_coor2);
+		vector<StereoBinaryFeature>().swap(features_coor3);
 
-		cout<<"Extract BSC feature done."<<endl;
+		cout << "Extract BSC feature done." << endl;
 	}
-    
-	//entrance for each keypoint  
+
+	bool ReArrangeGrid(vector<GridVoxel> &grid_a, vector<GridVoxel> &grid_b, int tran_xy, int tran_xz, int tran_yz)
+	{
+		int size_vector = grid_a.size();
+		int size_one_plane = voxel_side_num_ * voxel_side_num_;
+
+		vector<GridVoxel> grid_a_xy(grid_a.begin(), grid_a.begin() + size_one_plane);
+		vector<GridVoxel> grid_a_xz(grid_a.begin() + size_one_plane, grid_a.begin() + 2 * size_one_plane);
+		vector<GridVoxel> grid_a_yz(grid_a.begin() + 2 * size_one_plane, grid_a.begin() + 3 * size_one_plane);
+
+		vector<GridVoxel> grid_b_xy, grid_b_xz, grid_b_yz;
+
+		ReArrange_2D(grid_a_xy, grid_b_xy, tran_xy);
+		ReArrange_2D(grid_a_xz, grid_b_xz, tran_xz);
+		ReArrange_2D(grid_a_yz, grid_b_yz, tran_yz);
+
+		grid_b.insert(grid_b.end(), grid_b_xy.begin(), grid_b_xy.end());
+		grid_b.insert(grid_b.end(), grid_b_xz.begin(), grid_b_xz.end());
+		grid_b.insert(grid_b.end(), grid_b_yz.begin(), grid_b_yz.end());
+
+		return 1;
+	}
+
+	//1
+	bool ReArrange_reverse_all(vector<GridVoxel> &grid_2d_a, vector<GridVoxel> &grid_2d_b)
+	{
+		grid_2d_b.resize(grid_2d_a.size());
+		for (int k = 0; k < grid_2d_a.size(); k++)
+		{
+			grid_2d_b[k] = grid_2d_a[compareFeatureDimensionInEachPlane_ - 1 - k];
+		}
+		return 1;
+	}
+
+	//2
+	bool ReArrange_reverse_sym_2(vector<GridVoxel> &grid_2d_a, vector<GridVoxel> &grid_2d_b)
+	{
+		grid_2d_b.resize(grid_2d_a.size());
+		int i, j, original_k;
+		for (int k = 0; k < grid_2d_a.size(); k++)
+		{
+			i = k / voxel_side_num_;
+			j = k % voxel_side_num_;
+			original_k = (voxel_side_num_ - 1 - i) * voxel_side_num_ + j;
+			grid_2d_b[k] = grid_2d_a[original_k];
+		}
+		return 1;
+	}
+
+	//3
+	bool ReArrange_reverse_sym_1(vector<GridVoxel> &grid_2d_a, vector<GridVoxel> &grid_2d_b)
+	{
+		grid_2d_b.resize(grid_2d_a.size());
+		int i, j, original_k;
+		for (int k = 0; k < grid_2d_a.size(); k++)
+		{
+			i = k / voxel_side_num_;
+			j = k % voxel_side_num_;
+			original_k = i * voxel_side_num_ + voxel_side_num_ - 1 - j;
+			grid_2d_b[k] = grid_2d_a[original_k];
+		}
+		return 1;
+	}
+
+	bool ReArrange_2D(vector<GridVoxel> &grid_2d_a, vector<GridVoxel> &grid_2d_b, int tran_type)
+	{
+		switch (tran_type)
+		{
+		case 1:
+			ReArrange_reverse_all(grid_2d_a, grid_2d_b);
+			break;
+		case 2:
+			ReArrange_reverse_sym_2(grid_2d_a, grid_2d_b);
+			break;
+		case 3:
+			ReArrange_reverse_sym_1(grid_2d_a, grid_2d_b);
+			break;
+		default:
+			return 0;
+		}
+		return 1;
+	}
+
+	//entrance for each keypoint
 	//4DOF -> 6DOF
 	bool extractBinaryFeatureOfKeypoint(const typename pcl::PointCloud<PointT>::Ptr &input_cloud,
-										size_t ptIndex, const std::vector<int> &searchIndexes,
+										size_t ptIndex, const std::vector<int> &searchIndexes, int dof_type,
 										vectorSBF &features)
 	{
 		StereoBinaryFeature feature;
@@ -678,50 +775,62 @@ class BSCEncoder : public StereoBinaryFeature
 			return false;
 		}
 
-		//Store the grid
-		vector<GridVoxel> grid(gridFeatureDimension_);
-
+		//Fixed coordinate system
 		CoordinateSystem localSystem1;
 		typename pcl::PointCloud<PointT>::Ptr result_cloud(new pcl::PointCloud<PointT>);
-
 		computeLocalCoordinateSystem(input_cloud, ptIndex, searchIndexes, localSystem1);
 		transformPointCloudToLocalSystem(input_cloud, ptIndex, searchIndexes, localSystem1, result_cloud);
 
-		constructCubicGrid(result_cloud, grid);
-
-		//Generate feature
-		feature = computeFeatureProjectedGridAndCompareFeature2D(grid); // Calculate the binary feature based on weighted depth and density difference on 3 project plane
-		//feature's LCS information
+		vector<GridVoxel> grid_1(gridFeatureDimension_);
+		constructCubicGrid(result_cloud, grid_1);						  //3* 2D Grid (on XOY, XOZ, YOZ plane)
+		feature = computeFeatureProjectedGridAndCompareFeature2D(grid_1); // Calculate the binary feature based on weighted depth and density difference on 3 project plane
 		feature.localSystem_.xAxis = localSystem1.xAxis;
 		feature.localSystem_.yAxis = localSystem1.yAxis;
 		feature.localSystem_.zAxis = localSystem1.zAxis;
 		feature.localSystem_.origin = localSystem1.origin;
 		features.push_back(feature);
 
+		if (dof_type > 0)
+		{
+			//reverse X and Y axis and keep Z axis (new coordiante system used for 4DOF matching), 2 features/CS in total
+			vector<GridVoxel> grid_2(gridFeatureDimension_);
+			ReArrangeGrid(grid_1, grid_2, 1, 2, 2);
+			feature = computeFeatureProjectedGridAndCompareFeature2D(grid_2);
+			feature.localSystem_.xAxis = -localSystem1.xAxis;
+			feature.localSystem_.yAxis = -localSystem1.yAxis;
+			feature.localSystem_.zAxis = localSystem1.zAxis;
+			feature.localSystem_.origin = localSystem1.origin;
+			features.push_back(feature);
+
+			vector<GridVoxel>(gridFeatureDimension_).swap(grid_2);
+
+			if (dof_type > 4) //(new coordiante system used for 6DOF matching), 4 features/CS in total
+			{
+				vector<GridVoxel> grid_3(gridFeatureDimension_);
+				ReArrangeGrid(grid_1, grid_3, 3, 2, 1);
+				feature = computeFeatureProjectedGridAndCompareFeature2D(grid_3);
+				feature.localSystem_.xAxis = localSystem1.xAxis;
+				feature.localSystem_.yAxis = -localSystem1.yAxis;
+				feature.localSystem_.zAxis = -localSystem1.zAxis;
+				feature.localSystem_.origin = localSystem1.origin;
+				features.push_back(feature);
+
+				vector<GridVoxel> grid_4(gridFeatureDimension_);
+				ReArrangeGrid(grid_1, grid_4, 2, 1, 3);
+				feature = computeFeatureProjectedGridAndCompareFeature2D(grid_4);
+				feature.localSystem_.xAxis = -localSystem1.xAxis;
+				feature.localSystem_.yAxis = localSystem1.yAxis;
+				feature.localSystem_.zAxis = -localSystem1.zAxis;
+				feature.localSystem_.origin = localSystem1.origin;
+				features.push_back(feature);
+
+				vector<GridVoxel>(gridFeatureDimension_).swap(grid_3);
+				vector<GridVoxel>(gridFeatureDimension_).swap(grid_4);
+			}
+		}
+
 		//Clear grid and result cloud
-		vector<GridVoxel>(gridFeatureDimension_).swap(grid);
-		result_cloud->points.clear();
-
-		/*Keep z axis still and reverse the x and y axis. (calculate multiple (4) features to solve the ambiguity of direction)*/
-		CoordinateSystem localSystem2;
-		localSystem2.xAxis = -localSystem1.xAxis;
-		localSystem2.yAxis = -localSystem1.yAxis;
-		localSystem2.zAxis = localSystem1.zAxis;
-		localSystem2.origin = localSystem1.origin;
-		transformPointCloudToLocalSystem(input_cloud, ptIndex, searchIndexes, localSystem2, result_cloud);
-
-		constructCubicGrid(result_cloud, grid);
-
-		//Generate feature for the reversed x,y axis's case
-		feature = computeFeatureProjectedGridAndCompareFeature2D(grid);
-		feature.localSystem_.xAxis = localSystem2.xAxis;
-		feature.localSystem_.yAxis = localSystem2.yAxis;
-		feature.localSystem_.zAxis = localSystem2.zAxis;
-		feature.localSystem_.origin = localSystem2.origin;
-		features.push_back(feature);
-
-		//Clear grid and result cloud
-		vector<GridVoxel>(gridFeatureDimension_).swap(grid);
+		vector<GridVoxel>(gridFeatureDimension_).swap(grid_1);
 		result_cloud->points.clear();
 
 		pcl::PointCloud<PointT>().swap(*result_cloud);

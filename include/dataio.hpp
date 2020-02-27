@@ -412,8 +412,11 @@ class DataIo : public CloudUtility<PointT>
 			{
 				pt.SetCoordinates(double(pointCloud->points[i].x) - global_shift[0], double(pointCloud->points[i].y) - global_shift[1], double(pointCloud->points[i].z) - global_shift[2]);
 
-				//If the Point template PointT is without intensity, you should comment the line.
-				//pt.SetIntensity(pointCloud->points[i].intensity);
+				bool intensity_available = pcl::traits::has_field<PointT, pcl::fields::intensity>::value;
+				if (intensity_available)
+				{
+					pt.SetIntensity(pointCloud->points[i].intensity);
+				}
 
 				//If the Point template PointT is without RGB, you should comment the line.
 				//liblas::Color lasColor;
@@ -459,8 +462,11 @@ class DataIo : public CloudUtility<PointT>
 
 			//------------------------------------------------Assign Intensity--------------------------------------------------//
 			//If the Point template PointT has intensity, you can assign the intensity with any feature of the point cloud in las.
-			//If the Point template PointT is without intensity, you should comment the line.
-			//pt.intensity = p.GetIntensity();
+			bool intensity_available = pcl::traits::has_field<PointT, pcl::fields::intensity>::value;
+			if (intensity_available)
+			{
+				pt.intensity = p.GetIntensity();
+			}
 			//pt.intensity = p.GetTime();
 			//pt.intensity = p.GetScanAngleRank();
 			//pt.intensity = p.GetNumberOfReturns();
