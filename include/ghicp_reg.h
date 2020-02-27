@@ -104,6 +104,18 @@ class GHRegistration
 		converge_t_ = converge_tran;
 		converge_r_ = converge_rot;
 		estimated_IoU_ = estimated_IoU;
+
+		pointCloudS_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
+		pointCloudStemp_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
+		pointCloudT_ = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>);
+	}
+
+	bool set_raw_pointcloud(const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloudS,
+							const pcl::PointCloud<pcl::PointXYZI>::Ptr &pointCloudT)
+	{
+		pointCloudS_ = pointCloudS;
+		pointCloudT_ = pointCloudT;
+		return 1;
 	}
 
 	//Main entrance
@@ -111,9 +123,9 @@ class GHRegistration
 
 	bool calGTmatch(Eigen::Matrix4Xd &SKP, Eigen::Matrix4Xd &TKP0);
 	bool cal_recall_precision();
-    
+
 	double calCloudFeatureDistance(int cor_num);
-    
+
 	double gt_maxdis; //ground truth max distance for correspondence keypoint pair
 
 	double PCFD; //Pairwise Cloud Feature Distance (0-1)  used for multi-view registration as weight of MST
@@ -159,6 +171,8 @@ class GHRegistration
 	FeatureType Ft_;
 	CorrespondenceType Ct_;
 	Eigen::MatrixX3d Spoint, Tpoint;
+
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pointCloudS_, pointCloudStemp_, pointCloudT_;
 
 	int iteration_number; //real iteration number from 1
 	int iteration_k;	  //iteration number determined for weight

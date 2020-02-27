@@ -1046,7 +1046,7 @@ class BSCEncoder : public StereoBinaryFeature
 		return count;
 	}
 
-	float Comput3DDistanceBetweenPoints(const pcl::PointXYZ &pt1, const pcl::PointXYZ &pt2)
+	float Comput3DDistanceBetweenPoints(const PointT &pt1, const PointT &pt2)
 	{
 		float dertax, dertay, dertaz, dis;
 		dertax = pt1.x - pt2.x;

@@ -11,7 +11,7 @@
 
 using namespace ghicp;
 
-typedef pcl::PointXYZ Point_T;
+typedef pcl::PointXYZI Point_T;
 
 bool match_feature_type(char use_feature, FeatureType Ft)
 {
@@ -140,13 +140,13 @@ int main(int argc, char **argv)
 	Ef.init(nkps, nkpt, bbx_magnitude);
 
 	GHRegistration ghreg(Kp,Ef,Ft,Ct,curvature_non_max_radius, weight_adjustment_ratio, weight_adjustment_step, estimated_IoU);
-    Eigen::Matrix4d Rt_final;  //transformation matrix from Source to Target Point Cloud
+    ghreg.set_raw_pointcloud(pointCloudS_down,pointCloudT_down);
+	
+	Eigen::Matrix4d Rt_final;  //transformation matrix from Source to Target Point Cloud
 	ghreg.ghicp_reg(Rt_final);
     
     pcl::PointCloud<Point_T>::Ptr pointCloudS_reg(new pcl::PointCloud<Point_T>());
-	
-	Eigen::Matrix4f Rt_final_f=Rt_final.template cast<float>();
-	cfilter.transformcloud(pointCloudS,pointCloudS_reg,Rt_final_f);
+	pcl::transformPointCloud(*pointCloudS, *pointCloudS_reg, Rt_final.template cast<float>());
 
 	dataio.writeCloudFile(filenameR,pointCloudS_reg);
 

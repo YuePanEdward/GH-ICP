@@ -92,6 +92,7 @@ output_point_cloud_path=...
 ```
 
 6. Analysis
+
 Some other well-known automatic registration algorithms are also provided in this repo. and you may apply them as reference.
 
 

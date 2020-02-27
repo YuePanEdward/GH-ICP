@@ -5,6 +5,7 @@
 
 #include "ghicp_reg.h"
 #include "utility.h"
+#include "cloud_viewer.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/function.hpp>
@@ -23,6 +24,13 @@ namespace ghicp
 
 bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 {
+	CloudViewer<pcl::PointXYZI> viewer;
+
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> reg_viewer(new pcl::visualization::PCLVisualizer("Registration viewer"));
+	reg_viewer->setBackgroundColor(255, 255, 255);
+    
+	viewer.displayRegistration_on_fly(reg_viewer, pointCloudS_, pointCloudT_, 10, 1000);
+
 	//Calculate Feature Distance
 	switch (Ft_)
 	{
@@ -40,12 +48,10 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 	{
 		Eigen::Matrix4d Rt_temp;
 		cout << iteration_number << " : " << endl;
-		//clock_t ts, te1, te2, te3;
-		//ts = clock();
-		
+
 		//Calculate ED
 		calED();
-		
+
 		//Calculate CD
 		switch (Ft_)
 		{
@@ -61,7 +67,7 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 		default:
 			break;
 		}
-        
+
 		// Find correspondence
 		switch (Ct_)
 		{
@@ -77,31 +83,27 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 		default:
 			break;
 		}
-		
-		//te1 = clock();
-		
-		//Estimating transformation
+
+		//Estimate transformation and then do updating
 		transformestimation(Rt_temp);
 		adjustweight();
 
 		Rt_tillnow = Rt_temp * Rt_tillnow;
 		cout << "Accumulated transformation matrix till now:" << endl
 			 << Rt_tillnow << endl;
-		//te2 = clock();
-		// if (io.paralist.output == 1)
-		// 	Reg.output(Reg.sfP); //Output result per iteration
-		//te3 = clock();
-		iteration_number++;
 
-		/*cout << "Time for finding correspondence : " << float(te1 - ts) / CLOCKS_PER_SEC << " s" << endl
-			 << "Time for transform estimation and updating : " << float(te2 - te1) / CLOCKS_PER_SEC << " s" << endl
-			 << "Time for output temporal result : " << float(te3 - te2) / CLOCKS_PER_SEC << " s" << endl
-			 << "Time for one iteration : " << float(te3 - ts) / CLOCKS_PER_SEC << " s" << endl
-			 << "-----------------------------------------------------------------------------" << endl;*/
+		pcl::transformPointCloud(*pointCloudS_, *pointCloudStemp_, Rt_tillnow.template cast<float>());
+
+		viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, 10, 200);
+
+		iteration_number++;
 	}
-    Rt_final=Rt_tillnow;
-	cout << "Final transformation matrix:"<<endl<<Rt_final << endl;
+	Rt_final = Rt_tillnow;
+	cout << "Final transformation matrix:" << endl
+		 << Rt_final << endl;
     
+    viewer.displayRegistration_on_fly(reg_viewer, pointCloudStemp_, pointCloudT_, 1, 3000);
+
 	return 1;
 }
 
@@ -134,7 +136,7 @@ bool GHRegistration::calED()
 bool GHRegistration::calFD_BSC()
 {
 
-# if 0
+#if 0
     //output feature distance
 	ofstream ofs;
 	ostringstream oss;
@@ -155,10 +157,10 @@ bool GHRegistration::calFD_BSC()
 	}
 	ofs.close();
 	}
-#endif 
-    
-	doubleVectorSBF bscS= KP.bscS;
-	doubleVectorSBF bscT= KP.bscT;
+#endif
+
+	doubleVectorSBF bscS = KP.bscS;
+	doubleVectorSBF bscT = KP.bscT;
 
 	SBF sbf0;
 	//int minFD = 1000, maxFD = 0;
@@ -187,10 +189,9 @@ bool GHRegistration::calFD_BSC()
 	return 1;
 }
 
-
 bool GHRegistration::calFD_FPFH()
 {
-	FPFHfeature <pcl::PointXYZ> fpfhcal(1.0);
+	FPFHfeature<pcl::PointXYZ> fpfhcal(1.0);
 	for (size_t i = 0; i < KP.kps_num; ++i)
 	{
 		for (size_t j = 0; j < KP.kpt_num; ++j)
@@ -201,7 +202,6 @@ bool GHRegistration::calFD_FPFH()
 	//cout << "FD calculation completed." << endl;
 	return 1;
 }
-
 
 bool GHRegistration::calCD_NF()
 {
@@ -225,8 +225,8 @@ bool GHRegistration::calCD_NF()
 	{
 		EF.penalty = CDmean / EF.penalty_initial;
 	}
-    
-	EF.penalty=max(CDmean,5.0);
+
+	EF.penalty = max(CDmean, 5.0);
 
 	cout << "CDmean: " << CDmean << "  penalty:" << EF.penalty << endl;
 	return 1;
@@ -274,7 +274,7 @@ bool GHRegistration::calCD_BSC()
 	{
 		EF.penalty = (CDmean - EF.penalty_initial * CDstd);
 	}
-    EF.penalty=max(EF.penalty,5.0);
+	EF.penalty = max(EF.penalty, 5.0);
 
 	cout << "weight FD:  " << WFD << "  weight ED:  " << WED << endl;
 	cout << "CDmean: " << CDmean << " CDstd: " << CDstd << "  penalty:" << EF.penalty << endl;

@@ -32,7 +32,10 @@ class CloudViewer
 {
   public:
     //Constructor
-    CloudViewer(){};
+    CloudViewer()
+    {
+        is_frist_epoch_ = 1;
+    };
     ~CloudViewer(){};
 
     void Dispaly2CloudPcl(const typename pcl::PointCloud<PointT>::Ptr &Cloud1, const typename pcl::PointCloud<PointT>::Ptr &Cloud2,
@@ -150,7 +153,88 @@ class CloudViewer
         }
     }
 
+    bool displayRegistration_on_fly(boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer,
+                                    const typename pcl::PointCloud<PointT>::Ptr &Cloud_S,
+                                    const typename pcl::PointCloud<PointT>::Ptr &Cloud_T,
+                                    int display_downsample_ratio,
+                                    int display_time_ms)
+    {
+        if (!is_frist_epoch_) // You need to remove the original camera and point cloud first
+        {
+            viewer->removePointCloud("pointcloudS");
+            viewer->removePointCloud("pointcloudT");
+        }
+        else
+        {
+            is_frist_epoch_ = 0;
+        }
+
+        bool intensity_available = pcl::traits::has_field<PointT, pcl::fields::intensity>::value;
+        if (Cloud_T->points[0].intensity<0.001) intensity_available=0;
+        
+        char t[256];
+        std::string s;
+        int n = 0;
+        float intensity_ratio;
+
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud_S_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud_T_rgb(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+        for (size_t i = 0; i < Cloud_T->points.size(); ++i)
+        {
+            if (i % display_downsample_ratio == 0)
+            {
+                pcl::PointXYZRGB pt;
+                pt.x = Cloud_T->points[i].x;
+                pt.y = Cloud_T->points[i].y;
+                pt.z = Cloud_T->points[i].z;
+
+                if (intensity_available)
+                    intensity_ratio = Cloud_T->points[i].intensity / 255.0;
+                else
+                    intensity_ratio = 1.0;
+
+                pt.r = 255 * intensity_ratio;
+                pt.g = 215 * intensity_ratio;
+                pt.b = 0 * intensity_ratio;
+                Cloud_T_rgb->points.push_back(pt);
+            }
+        } // Golden
+
+        viewer->addPointCloud(Cloud_T_rgb, "pointcloudT");
+
+        for (size_t i = 0; i < Cloud_S->points.size(); ++i)
+        {
+            if (i % display_downsample_ratio == 0)
+            {
+                pcl::PointXYZRGB pt;
+                pt.x = Cloud_S->points[i].x;
+                pt.y = Cloud_S->points[i].y;
+                pt.z = Cloud_S->points[i].z;
+
+                if (intensity_available)
+                    intensity_ratio = Cloud_S->points[i].intensity / 255.0;
+                else
+                    intensity_ratio = 1.0;
+
+                pt.r = 233 * intensity_ratio;
+                pt.g = 233 * intensity_ratio;
+                pt.b = 216 * intensity_ratio;
+                Cloud_S_rgb->points.push_back(pt);
+            }
+        } // Silver
+
+        viewer->addPointCloud(Cloud_S_rgb, "pointcloudS");
+
+        //std::cout << "Update the viewer done." << std::endl;
+
+        viewer->spinOnce(display_time_ms);
+        boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+    }
+
   private:
+    bool is_frist_epoch_;
+
     void _DisplayNClouds(const std::vector<typename pcl::PointCloud<PointT>::Ptr> &clouds,
                          boost::shared_ptr<pcl::visualization::PCLVisualizer> &viewer,
                          std::string prefix, color_type color_mode, int display_downsample_ratio, int viewport)
