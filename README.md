@@ -90,7 +90,7 @@ launch_realtime_viewer=1;     # Launch the realtime registration viewer during r
 
 5. Data preparation
 
-You can test on the online available point cloud data and registration dataset such as [Robotic 3D Scan Repository](http://kos.informatik.uni-osnabrueck.de/3Dscans/), [ETH PRS Registration Dataset](https://prs.igp.ethz.ch/research/completed_projects/automatic_registration_of_point_clouds.html), [ETH ASL Registration Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=laserregistration:laserregistration), [3D Match](http://3dmatch.cs.princeton.edu/), etc. 
+You can test on the online available point cloud data and registration dataset such as [WHU TLS Registration Dataset](http://3s.whu.edu.cn/ybs/en/benchmark.html), [Robotic 3D Scan Repository](http://kos.informatik.uni-osnabrueck.de/3Dscans/), [ETH PRS TLS Registration Dataset](https://prs.igp.ethz.ch/research/completed_projects/automatic_registration_of_point_clouds.html), [ETH ASL Robotics Registration Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=laserregistration:laserregistration), [3D Match](http://3dmatch.cs.princeton.edu/), etc. 
 
 You may apply the [format transform tool](https://github.com/YuePanEdward/Pointcloud_Format_Transformer) to get the data ready for registration.
 
