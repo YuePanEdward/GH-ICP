@@ -4,6 +4,9 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <thread>
+#include <chrono>
+#include <memory>
 
 //pcl
 #include <pcl/io/pcd_io.h>
@@ -41,7 +44,7 @@ class CloudViewer
     void Dispaly2Cloud(const typename pcl::PointCloud<PointT>::Ptr &Cloud1, const typename pcl::PointCloud<PointT>::Ptr &Cloud2,
                        std::string displayname, int display_downsample_ratio)
     {
-        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
+        std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
 
         viewer->setBackgroundColor(255, 255, 255);
         char t[256];
@@ -66,7 +69,10 @@ class CloudViewer
             }
         } // Golden
 
-        viewer->addPointCloud(pointcloud1, "pointcloudT");
+        if (!viewer->updatePointCloud(pointcloud1, "pointcloudT"))
+        {
+            viewer->addPointCloud(pointcloud1, "pointcloudT");
+        }
 
         for (size_t i = 0; i < Cloud2->points.size(); ++i)
         {
@@ -83,13 +89,16 @@ class CloudViewer
             }
         } // Silver
 
-        viewer->addPointCloud(pointcloud2, "pointcloudS");
+        if (!viewer->updatePointCloud(pointcloud2, "pointcloudS"))
+        {
+            viewer->addPointCloud(pointcloud2, "pointcloudS");
+        }
 
         cout << "Click X(close) to continue..." << endl;
         while (!viewer->wasStopped())
         {
             viewer->spinOnce(100);
-            boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
         }
     }
 
@@ -97,7 +106,7 @@ class CloudViewer
                         const std::vector<typename pcl::PointCloud<PointT>::Ptr> &clouds2,
                         std::string displayname, color_type color_mode, int display_downsample_ratio)
     {
-        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
+        std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
         viewer->setBackgroundColor(0, 0, 0);
         char t[256];
         std::string s;
@@ -124,14 +133,14 @@ class CloudViewer
         while (!viewer->wasStopped())
         {
             viewer->spinOnce(100);
-            boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
         }
     }
 
     void DisplayNClouds(const std::vector<typename pcl::PointCloud<PointT>::Ptr> &clouds,
                         std::string displayname, color_type color_mode, int display_downsample_ratio)
     {
-        boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
+        std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(displayname));
         viewer->setBackgroundColor(0, 0, 0);
         //Create two vertically separated viewports
         int v1(0);
@@ -149,11 +158,11 @@ class CloudViewer
         while (!viewer->wasStopped())
         {
             viewer->spinOnce(100);
-            boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+            std::this_thread::sleep_for(std::chrono::microseconds(100000));
         }
     }
 
-    bool displayRegistration_on_fly(boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer,
+    bool displayRegistration_on_fly(std::shared_ptr<pcl::visualization::PCLVisualizer> viewer,
                                     const typename pcl::PointCloud<PointT>::Ptr &Cloud_S,
                                     const typename pcl::PointCloud<PointT>::Ptr &Cloud_T,
                                     int display_downsample_ratio,
@@ -202,7 +211,10 @@ class CloudViewer
             }
         } // Silver
 
-        viewer->addPointCloud(Cloud_T_rgb, "pointcloudT");
+        if (!viewer->updatePointCloud(Cloud_T_rgb, "pointcloudT"))
+        {
+            viewer->addPointCloud(Cloud_T_rgb, "pointcloudT");
+        }
 
         for (size_t i = 0; i < Cloud_S->points.size(); ++i)
         {
@@ -225,19 +237,22 @@ class CloudViewer
             }
         } // Golden
 
-        viewer->addPointCloud(Cloud_S_rgb, "pointcloudS");
+        if (!viewer->updatePointCloud(Cloud_S_rgb, "pointcloudS"))
+        {
+            viewer->addPointCloud(Cloud_S_rgb, "pointcloudS");
+        }
 
         //std::cout << "Update the viewer done." << std::endl;
 
         viewer->spinOnce(display_time_ms);
-        boost::this_thread::sleep(boost::posix_time::microseconds(1000));
+        std::this_thread::sleep_for(std::chrono::microseconds(1000));
     }
 
   private:
     bool is_frist_epoch_;
 
     void _DisplayNClouds(const std::vector<typename pcl::PointCloud<PointT>::Ptr> &clouds,
-                         boost::shared_ptr<pcl::visualization::PCLVisualizer> &viewer,
+                         std::shared_ptr<pcl::visualization::PCLVisualizer> &viewer,
                          std::string prefix, color_type color_mode, int display_downsample_ratio, int viewport)
     {
         char ch_t[256];

@@ -20,8 +20,6 @@
 #include <pcl/filters/extract_indices.h>
 #include <vector>
 
-#include <boost/thread/thread.hpp>
-
 #include "utility.h"
 
 using namespace std;

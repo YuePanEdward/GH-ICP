@@ -69,6 +69,7 @@ class DataIo : public CloudUtility<PointT>
 		}
 
 		std::cout << "Data loaded (" << pointCloud->points.size() << " points)" << std::endl;
+		return 1;
 	}
 
 	bool writeCloudFile(const std::string &fileName, const typename pcl::PointCloud<PointT>::Ptr &pointCloud)
