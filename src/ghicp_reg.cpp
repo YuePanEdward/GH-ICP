@@ -2,13 +2,12 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <chrono>
 
 #include "ghicp_reg.h"
 #include "utility.h"
 #include "cloud_viewer.hpp"
-
-#include <boost/filesystem.hpp>
-#include <boost/function.hpp>
 
 #include <pcl/registration/ndt.h>
 #include <pcl/filters/extract_indices.h>
@@ -26,7 +25,7 @@ bool GHRegistration::ghicp_reg(Eigen::Matrix4d &Rt_final)
 {
 	CloudViewer<pcl::PointXYZI> viewer;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> reg_viewer(new pcl::visualization::PCLVisualizer("Registration viewer"));
+	std::shared_ptr<pcl::visualization::PCLVisualizer> reg_viewer(new pcl::visualization::PCLVisualizer("Registration viewer"));
 	reg_viewer->setBackgroundColor(255, 255, 255);
 
 	int downsample_rate_in_process = 5;
@@ -786,6 +785,7 @@ bool GHRegistration::adjustweight()
 		;
 	}
 	cout << "IoU: " << IoU << " ,Penalty_ED: " << EF.para1_penalty << " ,Penalty_FD: " << EF.para2_penalty << endl;
+	return 1;
 }
 
 bool GHRegistration::transformestimation(Eigen::Matrix4d &Rt)
@@ -1229,7 +1229,7 @@ void Registration::displayPCrb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	KpS.resize(4, kpS.cols());
 	KpS = Rt_tillnow*kpS;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
 	viewer->setBackgroundColor(255, 255, 255);
 	char t[256];
 	string s;
@@ -1299,7 +1299,7 @@ void Registration::displayPCrb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	while (!viewer->wasStopped())
 	{
 		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100000));
 	}
 }
 
@@ -1313,7 +1313,7 @@ void Registration::displayPCvb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	KpS.resize(4, kpS.cols());
 	KpS = Rt_tillnow*kpS;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Registered Result"));
+	std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("Registered Result"));
 	viewer->setBackgroundColor(255, 255, 255);
 	char t[256];
 	string s;
@@ -1383,7 +1383,7 @@ void Registration::displayPCvb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	while (!viewer->wasStopped())
 	{
 		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100000));
 	}
 }
 
@@ -1397,7 +1397,7 @@ void Registration::displayPCyb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	KpS.resize(4, kpS.cols());
 	KpS = Rt_tillnow*kpS;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
 	viewer->setBackgroundColor(255, 255, 255);
 	char t[256];
 	string s;
@@ -1467,7 +1467,7 @@ void Registration::displayPCyb(const pcXYZIPtr &cloudT, Eigen::Matrix4Xd &cloudS
 	while (!viewer->wasStopped())
 	{
 		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100000));
 	}
 }
 
@@ -1477,7 +1477,7 @@ void Registration::displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4
 	TransPC.resize(4, TP.cols());
 	TransPC = Rt_tillnow*TP;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	std::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
 	viewer->setBackgroundColor(0, 0, 0);
 	char t[256];
 	string s;
@@ -1551,7 +1551,7 @@ void Registration::displayCorrespondence(const pcXYZIPtr &cloudS, Eigen::Matrix4
 	while (!viewer->wasStopped())
 	{
 		viewer->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100000));
 	}
 }
 
@@ -1603,7 +1603,7 @@ void Registration::Reg_3DNDT(pcXYZIPtr CloudS, pcXYZIPtr CloudT){
 	//For Visualization
 	/*
 	// Initializing point cloud visualizer
-	boost::shared_ptr<pcl::visualization::PCLVisualizer>
+	std::shared_ptr<pcl::visualization::PCLVisualizer>
 		viewer_final(new pcl::visualization::PCLVisualizer("3DNDT"));
 	viewer_final->setBackgroundColor(0, 0, 0);
 
@@ -1629,7 +1629,7 @@ void Registration::Reg_3DNDT(pcXYZIPtr CloudS, pcXYZIPtr CloudT){
 	while (!viewer_final->wasStopped())
 	{
 		viewer_final->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+		std::this_thread::sleep_for(std::chrono::microseconds(100000));
 	}*/
 }
 

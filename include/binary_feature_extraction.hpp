@@ -10,8 +10,6 @@
 #include <string>
 #include <sstream>
 
-#include <boost/tuple/tuple.hpp>
-
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
