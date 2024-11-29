@@ -381,7 +381,8 @@ void CRegistration<PointT>::compute_fpfh_feature(const typename pcl::PointCloud<
 	// Estimate FPFH Feature
 	pcl::FPFHEstimationOMP<PointT, pcl::Normal, pcl::FPFHSignature33> est_fpfh;
 	est_fpfh.setNumberOfThreads(4);
-	est_fpfh.setInputCloud(input_cloud);
+	if(!input_cloud->empty())
+		est_fpfh.setInputCloud(input_cloud);
 	est_fpfh.setInputNormals(cloud_normal);
 	typename pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>());
 	est_fpfh.setSearchMethod(tree);
