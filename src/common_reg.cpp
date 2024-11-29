@@ -300,7 +300,9 @@ float CRegistration<PointT>::calOverlap(const typename pcl::PointCloud<PointT>::
 	float overlap_ratio;
 
 	pcl::KdTreeFLANN<PointT> kdtree;
-	kdtree.setInputCloud(Cloud2);
+	
+	if(!Cloud2->empty())
+		kdtree.setInputCloud(Cloud2);
 
 	std::vector<int> pointIdxRadiusSearch;
 	std::vector<float> pointRadiusSquaredDistance;
